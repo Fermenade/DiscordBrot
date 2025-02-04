@@ -26,7 +26,6 @@ class Program
     ushort messageCount;
     public async Task RunBotAsync() //Async
     {
-
         DiscordSocketConfig config = new DiscordSocketConfig
         {
             GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.Guilds | GatewayIntents.GuildMessages, //Braucht es, weil baum
@@ -51,7 +50,7 @@ class Program
 
 
         //_ = SendRandomMessagesAsync(_cancellationTokenSource.Token); //Send Messages - cancelation is irgendwie cool.
-        _ = UpdateStatusAsync(_cancellationTokenDayTime.Token); 
+        _ = UpdateStatusAsync(_cancellationTokenDayTime.Token);
         // Block the program until it is closed (:
         await Task.Delay(-1);
     }
@@ -123,8 +122,7 @@ class Program
                     {
                         if (GetCombination(message) != GetNextCombination(GetCombination(_LastUserMessage)))
                         {
-                            var emoji = new Emoji("🐟");
-                            await message.AddReactionAsync(emoji);
+                            AddReactionAsync(message);
                             _LastUserMessageFallback = new KeyValuePair<IUser, string>(message.Author, GetNextCombination(GetCombination(_LastUserMessage)));
                             _LastUserMessage = null;
                         }
@@ -146,7 +144,7 @@ class Program
                     {
                         if (GetCombination(message) != GetNextCombination(_LastUserMessageFallback.Value))
                         {
-                            await message.AddReactionAsync(new Emoji("🐟"));
+                            AddReactionAsync(message);
                             Console.WriteLine(GetCombination(message));
                             Console.WriteLine(GetNextCombination(_LastUserMessageFallback.Value));
                             _LastUserMessageFallback = new KeyValuePair<IUser, string>(message.Author, GetNextCombination(_LastUserMessageFallback.Value));
@@ -184,6 +182,12 @@ class Program
                 await message.Channel.SendMessageAsync(response);
             }
         }
+    }
+    private async void AddReactionAsync(SocketMessage message){
+        await message.AddReactionAsync(new Emoji("🐟"));
+        File.Exists("scores.json");
+        
+
     }
     private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
     {
@@ -286,7 +290,7 @@ class Program
                                 }
                                 else //There was a bug
                                 {
-                                    await message.AddReactionAsync(new Emoji("🐟"));
+                                    AddReactionAsync(message);
                                 }
 
                             }
@@ -330,7 +334,7 @@ class Program
 
         foreach (IMessage msg in messages.Reverse())
         {
-            if (!CheckFormat(msg)) { await msg.AddReactionAsync(new Emoji("🐟")); continue; }
+            if (!CheckFormat(msg)) { AddReactionAsync((SocketMessage)msg); continue; }
 
             if (Streak.currentIndex == 0)
             {
