@@ -185,9 +185,7 @@ class Program
     }
     private async void AddReactionAsync(SocketMessage message){
         await message.AddReactionAsync(new Emoji("🐟"));
-        File.Exists("scores.json");
-        
-
+        if(!File.Exists("scores.json"))File.Create("scores.json");
     }
     private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
     {
