@@ -1,8 +1,8 @@
-﻿using Discord;
-using Discord.WebSocket;
-using System.Collections.Concurrent;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Collections.Concurrent;
 using System.Text;
+using System.Text.Json;
+using Discord;
+using Discord.WebSocket;
 
 class Program
 {
@@ -183,9 +183,45 @@ class Program
             }
         }
     }
-    private async void AddReactionAsync(SocketMessage message){
+    private async void AddReactionAsync(SocketMessage message)
+    { // name überschneidet sich mit methode die mit punkt aufgerufen wird (ja hab den begriff vergessen)
         await message.AddReactionAsync(new Emoji("🐟"));
-        if(!File.Exists("scores.json"))File.Create("scores.json");
+        CreateScoreboardFile();
+        AddUserPoint(message.Author);
+    }
+    private void AddUserPoint(SocketUser user)
+    {
+        Dictionary<ulong, object[]>? map = ReadScoreboard();//Mir gefällt nicht, wie wir das Scoreboard lesen müssen, damit wir in das Scoreboard Schreiben können
+        WriteScoreboard(map,user);
+    }
+    string scorefilepath = "scores.json";
+    private void CreateScoreboardFile()
+    {
+        if (!File.Exists(scorefilepath)) File.Create(scorefilepath);
+    }
+    private Dictionary<ulong, object[]>? ReadScoreboard()//user id speichern weil name uneindeutig
+    {
+        return JsonSerializer.Deserialize<Dictionary<ulong, object[]>>((FileStream)new(scorefilepath, FileMode.Open, FileAccess.Read));
+    }
+    private void PrintAlphabetStats(Dictionary<ulong, object[]> map)
+    {
+        string[] stats = [];
+        foreach (var x in map)
+        {
+            stats.Append($"{x.Value[0]} {x.Value[1]}");
+        }
+    }
+    //    private void WriteScoreboard<T>(T type)
+    private void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
+    {
+        FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Write);
+        map ??= [];//wenn file korrupt oder (noch) leer
+        map[user.Id] = [user.Username, (ushort)map[user.Id][1] + 1];
+        JsonSerializer.SerializeAsync(fs, map);//Sync oder Async
+    }
+    private async void RemoveFishReactionAsync(SocketMessage message)
+    {
+        await message.RemoveReactionAsync(new Emoji("🐟"), GetBotID(message));// soll der fehler wieder abgezogen werden, wenn der fehler ausgebessert wird?
     }
     private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
     {
@@ -262,12 +298,11 @@ class Program
     }
     private async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage message, ISocketMessageChannel channel)
     {
-        botID = GetBotID(message);
         if (message.Channel is SocketThreadChannel threadChannel && threadChannel.Id == _ThreadAlphabetBack)
         {
             await GetBotUpToDate();
-            var messages = await channel.GetMessagesAsync(30).FlattenAsync();
-            var targetMessage = messages.FirstOrDefault(m => m.Id == message.Id);
+            IEnumerable<IMessage> messages = await channel.GetMessagesAsync(30).FlattenAsync();
+            IMessage? targetMessage = messages.FirstOrDefault(m => m.Id == message.Id);
             if (targetMessage != null)
             {
                 // Get the index of the target message
@@ -284,7 +319,7 @@ class Program
                             {
                                 if ($"{first}{second}{third}" == GetCombination(targetMessage))
                                 {
-                                    await message.RemoveReactionAsync(new Emoji("🐟"), botID);
+                                    RemoveFishReactionAsync(message);
                                 }
                                 else //There was a bug
                                 {
@@ -300,7 +335,7 @@ class Program
         }
     }
 
-    private static SocketGuildUser GetBotID(SocketMessage message)
+    private static SocketGuildUser GetBotID(SocketMessage message)// is diese methode so schlau?
     {
         // Get the guild (server) where the message was sent
         if (message.Channel is SocketGuildChannel guildChannel)
@@ -351,13 +386,13 @@ class Program
             Streak.currentIndex++;
             if (CurrentStreak.streak > TopStreak.streak) TopStreak = new(CurrentStreak.streak, CurrentStreak.currentCombination);
         }
-        int getIndexLastTopStreak = messages.ToList().FindIndex(x =>CheckFormat(x) && GetCombination(x) == TopStreak.currentCombination);
-        string s= TopStreak.currentCombination;
+        int getIndexLastTopStreak = messages.ToList().FindIndex(x => CheckFormat(x) && GetCombination(x) == TopStreak.currentCombination);
+        string s = TopStreak.currentCombination;
         for (int i = 0; getIndexLastTopStreak != i; i++)
         {
             s = GetNextCombination(s);
         }
-        _LastUserMessageFallback = new(messages.First().Author,s);
+        _LastUserMessageFallback = new(messages.First().Author, s);
         Console.WriteLine(getIndexLastTopStreak);
         Console.WriteLine(s);
     }
@@ -383,7 +418,8 @@ class Program
                 {
                     counter++;
                     if (counter == messageCount) Console.WriteLine($"{first}{second}{third}");
-                };
+                }
+        ;
     }
     private static string GetLastCombination(IMessage message)
     {
@@ -415,12 +451,13 @@ class Program
         }
         return new string(chars);
     }
-    private static bool CheckFormat(IMessage message) {
-        if (message.Content.Length < 3)return false;
+    private static bool CheckFormat(IMessage message)
+    {
+        if (message.Content.Length < 3) return false;
         return GetCombination(message) == GetCombination(message).ToUpper();
     }
 
-    private static string GetCombination(IMessage message) => message.Content.Substring(0,3);
+    private static string GetCombination(IMessage message) => message.Content.Substring(0, 3);
     private async Task UpdateStatusAsync(CancellationToken cancellationToken)
     {
         byte i = 0;
