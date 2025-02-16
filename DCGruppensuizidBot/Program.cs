@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using Discord;
 using Discord.WebSocket;
 
@@ -205,6 +207,12 @@ class Program
     }
     private void PrintAlphabetStats(Dictionary<ulong, object[]> map)
     {
+        byte maxuserlengh = 0;
+        foreach (var user in map)
+        {
+            if(user.Value[0].ToString().Length > maxuserlengh)
+            maxuserlengh = (byte)user.Value[0].ToString().Length;
+        }//Implement check if Username exists twice then add the first four letters of his chosen name
         string[] stats = [];
         foreach (var x in map)
         {
@@ -212,12 +220,29 @@ class Program
         }
     }
     //    private void WriteScoreboard<T>(T type)
-    private void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
+    private async void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
     {
         FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Write);
         map ??= [];//wenn file korrupt oder (noch) leer
         map[user.Id] = [user.Username, (ushort)map[user.Id][1] + 1];
         JsonSerializer.SerializeAsync(fs, map);//Sync oder Async
+        ITextChannel? channel = _client.GetChannel(_ThreadAlphabetBack) as ITextChannel;
+        CheckIfChannelExists(channel);
+        await channel.SendMessageAsync();
+    }
+    private void CheckIfChannelExists(ITextChannel channel)
+    {
+        if (channel == null)
+        {
+            throw new Exception("Channel not found.");
+        }
+    }
+    private void CheckIfChannelExists(IVoiceChannel channel)
+    {
+        if  (channel == null)
+        {
+            throw new Exception("Channel not found.");
+        }
     }
     private async void RemoveFishReactionAsync(SocketMessage message)
     {
@@ -226,12 +251,7 @@ class Program
     private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
     {
         ITextChannel? channel = _client.GetChannel(_ThreadAlphabetBack) as ITextChannel;
-
-        if (channel == null)
-        {
-            throw new Exception("Channel not found.");
-            return;
-        }
+        CheckIfChannelExists(channel);
         while (!cancellationToken.IsCancellationRequested)
         {
             string[] lines = await File.ReadAllLinesAsync("..\\..\\..\\AlphabetMessages.txt");
