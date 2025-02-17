@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -36,7 +35,6 @@ class Program
 
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
-
 
         string token = File.ReadAllText("token.txt"); // Sike, ihr kriegt keinen Token
         await _client.LoginAsync(TokenType.Bot, token);
@@ -194,7 +192,7 @@ class Program
     private void AddUserPoint(SocketUser user)
     {
         Dictionary<ulong, object[]>? map = ReadScoreboard();//Mir gefällt nicht, wie wir das Scoreboard lesen müssen, damit wir in das Scoreboard Schreiben können
-        WriteScoreboard(map,user);
+        WriteScoreboard(map, user);
     }
     string scorefilepath = "scores.json";
     private void CreateScoreboardFile()
@@ -210,14 +208,37 @@ class Program
         byte maxuserlengh = 0;
         foreach (var user in map)
         {
-            if(user.Value[0].ToString().Length > maxuserlengh)
-            maxuserlengh = (byte)user.Value[0].ToString().Length;
+            if (user.Value[0].ToString().Length > maxuserlengh)
+                maxuserlengh = (byte)user.Value[0].ToString().Length;
         }//Implement check if Username exists twice then add the first four letters of his chosen name
         string[] stats = [];
         foreach (var x in map)
         {
             stats.Append($"{x.Value[0]} {x.Value[1]}");
         }
+        var embed = new EmbedBuilder
+        {
+            Title = "Mein Dictionary",
+            Color = Color.Blue
+        };
+
+        foreach (var kvp in map.OrderBy(k => k.Value))
+        {
+            embed.AddField((string)(kvp.Value)[0], (ushort)(kvp.Value)[1]);
+        }
+        //IReadOnlyCollection<IThreadChannel> threads = await channel.GetActiveThreadsAsync();
+        //IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == _ThreadAlphabetBack) as IThreadChannel;
+        ITextChannel? channel = _client.GetChannel(_TBoardChernobil) as ITextChannel;
+        CheckIfChannelExists(channel);
+        DisplayStuffInDC(embed, channel);
+    }
+    private async void DisplayStuffInDC(EmbedBuilder embed, ITextChannel channel)
+    {
+        await channel.SendMessageAsync(embed: embed.Build());
+    }
+    private async void DisplayStuffInDC(string text,ITextChannel channel)
+    {
+        await channel.SendMessageAsync(text);
     }
     //    private void WriteScoreboard<T>(T type)
     private async void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
@@ -226,9 +247,7 @@ class Program
         map ??= [];//wenn file korrupt oder (noch) leer
         map[user.Id] = [user.Username, (ushort)map[user.Id][1] + 1];
         JsonSerializer.SerializeAsync(fs, map);//Sync oder Async
-        ITextChannel? channel = _client.GetChannel(_ThreadAlphabetBack) as ITextChannel;
-        CheckIfChannelExists(channel);
-        await channel.SendMessageAsync();
+
     }
     private void CheckIfChannelExists(ITextChannel channel)
     {
@@ -239,7 +258,7 @@ class Program
     }
     private void CheckIfChannelExists(IVoiceChannel channel)
     {
-        if  (channel == null)
+        if (channel == null)
         {
             throw new Exception("Channel not found.");
         }
@@ -269,7 +288,7 @@ class Program
                 IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == _ThreadAlphabetBack) as IThreadChannel;
                 var userMessageCount = new Dictionary<ulong, int>();
                 var messages = await thread.GetMessagesAsync(limit: 10000).FlattenAsync();
-                await channel.SendMessageAsync(GetNextPrint() + " " + $"In diesem Thread wurden bis jetzt **{messages.Count()}** Nachrichten geschrieben");
+                DisplayStuffInDC(GetNextPrint() + " " + $"In diesem Thread wurden bis jetzt **{messages.Count()}** Nachrichten geschrieben",channel);
             }
             else if (selectedLine == "ShowEachTotalMessageCount")
             {
@@ -298,7 +317,7 @@ class Program
                 }
                 // Convert StringBuilder to string
                 string finalResult = result.ToString();
-                await channel.SendMessageAsync(GetNextPrint() + " " + finalResult);
+                DisplayStuffInDC(GetNextPrint() + "\n" + finalResult,channel);
             }
             else if (selectedLine == "SendOrgans")
             {

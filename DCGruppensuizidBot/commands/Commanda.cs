@@ -6,8 +6,8 @@ internal class Commanda
     //.AddOptions(new SlashCommandOptionBuilder().WithName("query: ").AddChoice("start", 1).AddChoice("stop", 2).AddChoice("reload", 3).AddChoice("stats", 4).WithType(ApplicationCommandOptionType.Integer));
 
     //internal SlashCommandBuilder getStats = new SlashCommandBuilder().WithName("getStats").WithDescription("Gibt alle eine Liste aller Fehler aus.");
-    internal SlashCommandBuilder getStats = new SlashCommandBuilder().WithName("AlphabetMessages").WithDescription("Gibt alle eine Liste aller Fehler aus.")
-    .AddOptions(new SlashCommandOptionBuilder().WithName("query: ").AddChoice("stats", 1).WithType(ApplicationCommandOptionType.Integer));
+    //internal SlashCommandBuilder getStats = new SlashCommandBuilder().WithName("AlphabetMessages").WithDescription("Gibt alle eine Liste aller Fehler aus.")
+    //.AddOptions(new SlashCommandOptionBuilder().WithName("query: ").AddChoice("stats", 1).WithType(ApplicationCommandOptionType.Integer));
 
     public void BuildSubSlashCommand()
     {
