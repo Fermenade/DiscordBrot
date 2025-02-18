@@ -1,5 +1,18 @@
-﻿using Discord;
-internal class Commanda
+﻿using System.Reflection;
+using Discord;
+using Discord.WebSocket;
+
+public class Command
+{
+    string Name;
+
+    public Command(string name)
+    {
+        Name = name;
+    }
+}
+
+partial class Program
 {
     // Next, lets create our slash command builder. This is like the embed builder but for slash commands.
     // internal SlashCommandBuilder CServer = new SlashCommandBuilder().WithName("server").WithDescription("Spricht den Server an.")
@@ -9,21 +22,7 @@ internal class Commanda
     //internal SlashCommandBuilder getStats = new SlashCommandBuilder().WithName("AlphabetMessages").WithDescription("Gibt alle eine Liste aller Fehler aus.")
     //.AddOptions(new SlashCommandOptionBuilder().WithName("query: ").AddChoice("stats", 1).WithType(ApplicationCommandOptionType.Integer));
 
-    public void BuildSubSlashCommand()
-    {
-        SlashCommandBuilder command = new SlashCommandBuilder()
-            .WithName("Alphabet").WithDescription("Commands")
-            .AddOptions(new SlashCommandOptionBuilder()
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .WithName("subcommand").WithDescription("Subcommand desc.")
-                .AddOptions(
-                    new SlashCommandOptionBuilder()
-                        .WithType(ApplicationCommandOptionType.String)
-                        .WithName("name1").WithDescription("desc1"),
-                    new SlashCommandOptionBuilder()
-                        .WithType(ApplicationCommandOptionType.String)
-                        .WithName("name2").WithDescription("desc2")));
-        command.Build();
+
     }
     //[Command("ping"), Description("Pings, for debuging")]
     //public async Task Ping(CommandContext ctx)
@@ -58,4 +57,3 @@ internal class Commanda
     //    //    }
     //    //}
     //}
-}

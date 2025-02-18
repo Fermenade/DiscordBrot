@@ -1,11 +1,12 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using Discord;
 using Discord.WebSocket;
 
-class Program
+partial class Program
 {
     private DiscordSocketClient _client;
 
@@ -17,6 +18,7 @@ class Program
     private readonly ulong _TBoardGeneral = 849240846125367378;
     private ulong _ThreadAlphabetBack = 1215011525195075636;
     private ulong _TBoardChernobil = 1186307797453918259;
+    private ulong _TBoardCommands = 1341062745306431518;
     private TaskCompletionSource<bool> _readyCompletionSource = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private CancellationTokenSource _cancellationTokenDayTime = new();
@@ -70,7 +72,7 @@ class Program
 
     private async Task MessageDeleted(Cacheable<IMessage, ulong> cachedMessage, Cacheable<IMessageChannel, ulong> channel)
     {
-        if (channel.Id == _ThreadAlphabetBack)
+        //if (channel.Id == _ThreadAlphabetBack)
         {
             // Enqueue the message
             _messageQueue.Enqueue(cachedMessage);//enqhene
@@ -79,33 +81,35 @@ class Program
             if (!_isProcessingQueue)//wenn nicht dann doch
             {
                 _isProcessingQueue = true;
-                await ProcessMessageQueue();//asnyc
+                await ProcessMessageQueue(channel);//asnyc
                 _isProcessingQueue = false;
             }
         }
     }
 
-    private async Task ProcessMessageQueue()
+    private async Task ProcessMessageQueue(Cacheable<IMessageChannel, ulong> channel)
     {
         while (_messageQueue.TryDequeue(out var cachedMessage))
         {
-            if (Deletedmessage != null)
+            if (channel.Id == _ThreadAlphabetBack)
             {
-                // Check if the message is cached
-                // why was  thjis even nessesary
-                if (cachedMessage.Id != Deletedmessage.Id)
+                if (Deletedmessage != null)
+                {
+                    // Check if the message is cached
+                    // why was  thjis even nessesary
+                    if (cachedMessage.Id != Deletedmessage.Id)
+                    {
+                        GetBotUpToDate();
+                        _LastUserMessage = null;
+                    }
+                }
+                else
                 {
                     GetBotUpToDate();
+                    //Spongebob
                     _LastUserMessage = null;
                 }
             }
-            else
-            {
-                GetBotUpToDate();
-                //Spongebob
-                _LastUserMessage = null;
-            }
-
             await Task.Delay(0);//await zerrrrrooooooo!
         }
     }
@@ -168,6 +172,11 @@ class Program
                 await message.DeleteAsync();
             }
         }
+        else if (message.Channel.Id == _TBoardCommands)
+        {
+            if (CheckValidCommand(message))
+                SearchCommand(message);
+        }
         if (message is SocketUserMessage userMessage && message.Author is SocketUser user) /*&&  !message.Author.IsBot*/
         {
             if (message.Channel is SocketDMChannel || message.MentionedUsers.Any(u => u.Id == _client.CurrentUser.Id))
@@ -183,10 +192,116 @@ class Program
             }
         }
     }
-    private async void AddReactionAsync(SocketMessage message)
+    void SearchCommand(SocketMessage command)
+    {
+        string[] commandString = command.Content.Remove(0, 1).Split(" ");
+        switch (commandString[0])
+        {
+            case "help":
+                StopItGetSomeHelp(command.Channel);
+                break;
+            case "alphastats":
+                if (!File.Exists(scorefilepath)) break;
+                PrintAlphabetStats(ReadScoreboard(), command.Channel);
+                break;
+            case "server":
+                switch (commandString[1])
+                {
+                    case "start":
+                        ReadAllContentFromProcess();
+                        StartMCServer();
+                        break;
+                    case "stop"://Check einbauen, dass der server nicht gestoppt werden, kann wenn jemand noch online ist.
+                        ShouldServerStop()
+                        break;
+                }
+                break;
+        }
+    }
+    void WriteToProcess(string promt)
+    {
+        // Example of writing to the command line program
+        inputWriter.WriteLine(promt); // Replace with actual input
+    }
+    StringBuilder last250Chars = new StringBuilder();
+
+    void CheckFor()
+    {
+        last250Chars.ToString().Contains("");
+    }
+    void ShouldServerStop()
+    {
+        WriteToProcess("list");
+        CheckFor();
+        WriteToProcess("stop");
+    }
+    void ReadAllContentFromProcess()
+    {
+
+        // Event handler for output data received
+        ushort charakterlimit = 5000;
+        process.OutputDataReceived += (sender, e) =>
+        {
+            if (e.Data != null) // Check if there's data
+            {
+                // Append the new output to the StringBuilder
+                last250Chars.Append(e.Data);
+
+                // If the length exceeds 250 characters, trim it
+                if (last250Chars.Length > charakterlimit)
+                {
+                    last250Chars.Remove(0, last250Chars.Length - charakterlimit);
+                }
+            }
+        };
+
+        // Wait for the process to exit
+        process.WaitForExit();
+    }
+
+    static Process process = new();
+    // Read output asynchronously
+    StreamReader outputReader = process.StandardOutput;
+    StreamWriter inputWriter = process.StandardInput;
+    void StartMCServer()
+    {
+        // Specify the command to run
+        string command = "./BMC_Server"; // e.g., "ping"
+        
+
+        // Create a new process
+        process.StartInfo.FileName = command;
+        //string arguments = "your_arguments_here"; // e.g., "google.com"
+        //process.StartInfo.Arguments = arguments;
+        process.StartInfo.UseShellExecute = false; // Do not use OS shell
+        process.StartInfo.RedirectStandardOutput = true; // Redirect output
+        process.StartInfo.RedirectStandardInput = true; // Redirect input
+        process.StartInfo.CreateNoWindow = true; // Do not create a window
+
+        // Start the process
+        process.Start();
+    }
+    void StopItGetSomeHelp(ISocketMessageChannel channel)
+    {
+        //Command Ideen:
+        //guthib: link zum github
+        string i = "!help\t\t\tHilfe!\n!alphastats\t\tGibt Statistiken des Alphabet-Thread aus";
+        DisplayStuffInDC(i, channel as ITextChannel);
+    }
+    bool CheckValidCommand(SocketMessage Message)
+    {
+        string command = Message.Content;
+        if (command[0].ToString() == "!")
+        {
+            return true;
+        }
+        Message.DeleteAsync();
+        return false;
+    }
+    private void AddReactionAsync(SocketMessage message)
     { // name überschneidet sich mit methode die mit punkt aufgerufen wird (ja hab den begriff vergessen)
-        await message.AddReactionAsync(new Emoji("🐟"));
         CreateScoreboardFile();
+        message.AddReactionAsync(new Emoji("🐟"));
         AddUserPoint(message.Author);
     }
     private void AddUserPoint(SocketUser user)
@@ -201,53 +316,54 @@ class Program
     }
     private Dictionary<ulong, object[]>? ReadScoreboard()//user id speichern weil name uneindeutig
     {
-        return JsonSerializer.Deserialize<Dictionary<ulong, object[]>>((FileStream)new(scorefilepath, FileMode.Open, FileAccess.Read));
-    }
-    private void PrintAlphabetStats(Dictionary<ulong, object[]> map)
-    {
-        byte maxuserlengh = 0;
-        foreach (var user in map)
+        Dictionary<ulong, object[]> map = new();
+        FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Read);
+        try
         {
-            if (user.Value[0].ToString().Length > maxuserlengh)
-                maxuserlengh = (byte)user.Value[0].ToString().Length;
-        }//Implement check if Username exists twice then add the first four letters of his chosen name
-        string[] stats = [];
-        foreach (var x in map)
-        {
-            stats.Append($"{x.Value[0]} {x.Value[1]}");
+            map = JsonSerializer.Deserialize<Dictionary<ulong, object[]>>(fs) ?? new();
+            fs.Close();
+            return map;
         }
+        catch
+        {
+            fs.Close();
+            return new();
+        }
+    }
+    private void PrintAlphabetStats(Dictionary<ulong, object[]> map, ISocketMessageChannel channel)
+    {
         var embed = new EmbedBuilder
         {
-            Title = "Mein Dictionary",
+            Title = "Leute die das Alphabet ned können",
             Color = Color.Blue
         };
 
-        foreach (var kvp in map.OrderBy(k => k.Value))
+        foreach (var kvp in map.OrderBy(k => Convert.ToUInt16(((JsonElement)k.Value[1]).GetUInt16())))
         {
-            embed.AddField((string)(kvp.Value)[0], (ushort)(kvp.Value)[1]);
+            embed.AddField(kvp.Value[0].ToString(), kvp.Value[1]);
         }
         //IReadOnlyCollection<IThreadChannel> threads = await channel.GetActiveThreadsAsync();
         //IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == _ThreadAlphabetBack) as IThreadChannel;
-        ITextChannel? channel = _client.GetChannel(_TBoardChernobil) as ITextChannel;
-        CheckIfChannelExists(channel);
         DisplayStuffInDC(embed, channel);
     }
-    private async void DisplayStuffInDC(EmbedBuilder embed, ITextChannel channel)
+    private async void DisplayStuffInDC(EmbedBuilder embed, ISocketMessageChannel channel)
     {
         await channel.SendMessageAsync(embed: embed.Build());
     }
-    private async void DisplayStuffInDC(string text,ITextChannel channel)
+    private async void DisplayStuffInDC(string text, ITextChannel channel)
     {
         await channel.SendMessageAsync(text);
     }
     //    private void WriteScoreboard<T>(T type)
-    private async void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
+    private void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
     {
-        FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Write);
         map ??= [];//wenn file korrupt oder (noch) leer
-        map[user.Id] = [user.Username, (ushort)map[user.Id][1] + 1];
-        JsonSerializer.SerializeAsync(fs, map);//Sync oder Async
+        if (!map.ContainsKey(user.Id)) map.Add(user.Id, [user.Username, 0]);
+        map[user.Id] = [user.Username, Convert.ToInt64(map[user.Id][1].ToString()) + 1];
 
+        FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Write);
+        JsonSerializer.SerializeAsync(fs, map);//Sync oder Async
+        fs.Close();
     }
     private void CheckIfChannelExists(ITextChannel channel)
     {
@@ -288,7 +404,7 @@ class Program
                 IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == _ThreadAlphabetBack) as IThreadChannel;
                 var userMessageCount = new Dictionary<ulong, int>();
                 var messages = await thread.GetMessagesAsync(limit: 10000).FlattenAsync();
-                DisplayStuffInDC(GetNextPrint() + " " + $"In diesem Thread wurden bis jetzt **{messages.Count()}** Nachrichten geschrieben",channel);
+                DisplayStuffInDC(GetNextPrint() + " " + $"In diesem Thread wurden bis jetzt **{messages.Count()}** Nachrichten geschrieben", channel);
             }
             else if (selectedLine == "ShowEachTotalMessageCount")
             {
@@ -317,7 +433,7 @@ class Program
                 }
                 // Convert StringBuilder to string
                 string finalResult = result.ToString();
-                DisplayStuffInDC(GetNextPrint() + "\n" + finalResult,channel);
+                DisplayStuffInDC(GetNextPrint() + "\n" + finalResult, channel);
             }
             else if (selectedLine == "SendOrgans")
             {

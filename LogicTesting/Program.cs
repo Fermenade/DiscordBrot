@@ -10,22 +10,29 @@ namespace LogicTesting
         }
         private void RunThisShit()
         {
-            //CreateScoreboardFile();
-            //WriteScoreboard();
+            CreateScoreboardFile();
+            WriteScoreboard();
             //DeleteScoreboardFile();
+            //WriteScoreboard(null);
         }
-        private void WriteScoreboard()
+        private async void WriteScoreboard(Dictionary<ulong, object[]> map)
         {
-            Dictionary<ulong, List<object>> map = new();
+            FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Write);
+            map ??= [];//wenn file korrupt oder (noch) leer
+            if (!map.ContainsKey(324324)) map.Add(324324, ["Username", 0]);
+            //else map[user.Id] = [user.Username, (ushort)map[user.Id][1] + 1];
+            await JsonSerializer.SerializeAsync(fs, "map");//Sync oder Async
+        }
+        private async void WriteScoreboard()
+        {
+            Dictionary<ulong, object[]> map = new();
             //map = JsonSerializer.Deserialize(stuff);
             S sd = new("user", 123);
             //map.Add(11233, sd);
-            List<object> sdf = [];
-            sdf.Add("user");
-            sdf.Add(122323);
-            map.Add(213123,sdf);
+            object[] sdf = ["User", 123123];
+            map.Add(2123123,sdf);
             FileStream fs = new(scorefilepath, FileMode.Open,FileAccess.Write);
-            JsonSerializer.SerializeAsync(fs, map);
+            await JsonSerializer.SerializeAsync(fs, map);
             fs.Close();
         }
         string scorefilepath = "scores.json";
