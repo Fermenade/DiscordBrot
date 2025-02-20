@@ -1,10 +1,10 @@
-﻿using System.Collections.Concurrent;
+﻿using Discord;
+using Discord.WebSocket;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Channels;
-using Discord;
-using Discord.WebSocket;
+using System.Text.RegularExpressions;
 
 partial class Program
 {
@@ -208,84 +208,117 @@ partial class Program
                 switch (commandString[1])
                 {
                     case "start":
-                        ReadAllContentFromProcess();
+                        //ReadAllContentFromProcess();
                         StartMCServer();
                         break;
                     case "stop"://Check einbauen, dass der server nicht gestoppt werden, kann wenn jemand noch online ist.
-                        ShouldServerStop()
+                        ShouldServerStop();
                         break;
                 }
                 break;
         }
     }
-    void WriteToProcess(string promt)
+    async void WriteToProcess(string promt)
     {
         // Example of writing to the command line program
         inputWriter.WriteLine(promt); // Replace with actual input
+        await Task.Delay(100);
     }
     StringBuilder last250Chars = new StringBuilder();
 
-    void CheckFor()
+    bool CheckForOnlinePlayer()
     {
-        last250Chars.ToString().Contains("");
+        WriteToProcess("list");
+        Console.WriteLine(last250Chars.ToString());
+        Console.WriteLine(last250Chars.ToString().Contains("[Server thread/INFO]: There are 0 of a max of 10 players online:"));
+        return last250Chars.ToString().Contains("[Server thread/INFO]: There are 0 of a max of 10 players online:");//Code Injection!!!
+    }
+    bool CheckForPlayerDisconnect()
+    {
+        string pattern = @"$$Server thread/INFO$$: (?<playerName>.+) lost connection: Disconnected";
+        return Regex.IsMatch(last250Chars.ToString(), pattern);
     }
     void ShouldServerStop()
     {
-        WriteToProcess("list");
-        CheckFor();
-        WriteToProcess("stop");
+        if (CheckForOnlinePlayer())
+            WriteToProcess("stop");
     }
+    async void MonitorPlayers()
+    {
+        await Task.Delay(600_000); // Überprüfe alle 1800 Sekunden
+        WriteToProcess("list");
+        await Task.Delay(100);
+        if (CheckForOnlinePlayer())
+            WriteToProcess("stop");
+    }
+    private readonly object lockObject = new object();
+
     void ReadAllContentFromProcess()
     {
+        ushort charakterlimit = 5000;
 
         // Event handler for output data received
-        ushort charakterlimit = 5000;
         process.OutputDataReceived += (sender, e) =>
         {
             if (e.Data != null) // Check if there's data
             {
-                // Append the new output to the StringBuilder
-                last250Chars.Append(e.Data);
-
-                // If the length exceeds 250 characters, trim it
-                if (last250Chars.Length > charakterlimit)
+                lock (lockObject) // Ensure thread safety
                 {
-                    last250Chars.Remove(0, last250Chars.Length - charakterlimit);
+                    // Append the new output to the StringBuilder
+                    last250Chars.Append(e.Data);
+
+                    // If the length exceeds the character limit, trim it
+                    if (last250Chars.Length > charakterlimit)
+                    {
+                        last250Chars.Remove(0, last250Chars.Length - charakterlimit);
+                    }
                 }
             }
         };
 
-        // Wait for the process to exit
-        process.WaitForExit();
+        // Start reading the output stream asynchronously
+        process.BeginOutputReadLine();
     }
 
-    static Process process = new();
+        static Process process = new();
     // Read output asynchronously
-    StreamReader outputReader = process.StandardOutput;
-    StreamWriter inputWriter = process.StandardInput;
+    StreamReader? outputReader;
+    StreamWriter? inputWriter;
     void StartMCServer()
     {
         // Specify the command to run
-        string command = "./BMC_Server"; // e.g., "ping"
-        
-
+        //string command = "./BMC_Server/start.sh"; // e.g., "ping"
+        string scriptPath = @".\BMC_Server\start.ps1";
+        ProcessStartInfo processInfo = new ProcessStartInfo
+        {
+            FileName = "powershell.exe",
+            //FileName = "/bin/bash/",
+            Arguments = $"-ExecutionPolicy Bypass -File \"{scriptPath}\"",
+            RedirectStandardOutput = true,
+            RedirectStandardInput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = false
+        };
         // Create a new process
-        process.StartInfo.FileName = command;
+        process.StartInfo = processInfo;
         //string arguments = "your_arguments_here"; // e.g., "google.com"
         //process.StartInfo.Arguments = arguments;
-        process.StartInfo.UseShellExecute = false; // Do not use OS shell
-        process.StartInfo.RedirectStandardOutput = true; // Redirect output
-        process.StartInfo.RedirectStandardInput = true; // Redirect input
-        process.StartInfo.CreateNoWindow = true; // Do not create a window
-
+        
         // Start the process
         process.Start();
+
+        outputReader = process.StandardOutput;
+        inputWriter = process.StandardInput;
+        ReadAllContentFromProcess();
     }
     void StopItGetSomeHelp(ISocketMessageChannel channel)
     {
         //Command Ideen:
         //guthib: link zum github
-        string i = "!help\t\t\tHilfe!\n!alphastats\t\tGibt Statistiken des Alphabet-Thread aus";
+        string i = "!help\t\t\tHilfe!" +
+            "\n!alphastats\t\tGibt Statistiken des Alphabet-Thread aus" +
+            "\n!guthip";
         DisplayStuffInDC(i, channel as ITextChannel);
     }
     bool CheckValidCommand(SocketMessage Message)
