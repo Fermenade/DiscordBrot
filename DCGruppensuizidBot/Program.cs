@@ -212,7 +212,7 @@ partial class Program
                         StartMCServer();
                         break;
                     case "stop"://Check einbauen, dass der server nicht gestoppt werden, kann wenn jemand noch online ist.
-                        ShouldServerStop()
+                        ShouldServerStop();
                         break;
                 }
                 break;
@@ -270,7 +270,7 @@ partial class Program
         
 
         // Create a new process
-        process.StartInfo.FileName = command;
+        process.StartInfo.FileName = "/bin/bash";
         //string arguments = "your_arguments_here"; // e.g., "google.com"
         //process.StartInfo.Arguments = arguments;
         process.StartInfo.UseShellExecute = false; // Do not use OS shell
