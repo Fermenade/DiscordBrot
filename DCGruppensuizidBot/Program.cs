@@ -255,10 +255,17 @@ partial class Program
 
     bool CheckForOnlinePlayer()
     {
+        
+        //process.StandardOutput.BaseStream.Seek(0,SeekOrigin.End);
         WriteToProcess("list");
-        string line = process.StandardOutput.;
-        Console.WriteLine(line);
-        if (line.Contains("[Server thread/INFO]: There are 0 of a max of 10 players online:")) return false;
+        int i = 0;
+        while (i < 100)
+        {
+            string line = process.StandardOutput.ReadLine();
+            Console.WriteLine(line);
+        }
+
+        //if (line.Contains("[Server thread/INFO]: There are 0 of a max of 10 players online:")) return false;
         return true;
     }
     bool CheckForPlayerDisconnect()
@@ -269,7 +276,7 @@ partial class Program
 
     void ShouldServerStop()
     {
-        if (!CheckForOnlinePlayer())
+        if (!CheckForOnlinePlayer()) ;
         WriteToProcess("stop");
         process.Close();
     }
