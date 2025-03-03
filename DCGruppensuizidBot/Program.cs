@@ -1,10 +1,12 @@
-﻿using System.Collections.Concurrent;
+﻿using Discord;
+using Discord.Rest;
+using Discord.WebSocket;
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Channels;
-using Discord;
-using Discord.WebSocket;
+using System.Text.RegularExpressions;
 
 partial class Program
 {
@@ -174,8 +176,12 @@ partial class Program
         }
         else if (message.Channel.Id == _TBoardCommands)
         {
-            if (CheckValidCommand(message))
-                SearchCommand(message);
+            if (CheckValidCommand(message) || message.Author == GetBotID(message))
+                SearchDiscordCommand(message);
+            else
+            {
+                await message.DeleteAsync();
+            }
         }
         if (message is SocketUserMessage userMessage && message.Author is SocketUser user) /*&&  !message.Author.IsBot*/
         {
@@ -192,7 +198,7 @@ partial class Program
             }
         }
     }
-    void SearchCommand(SocketMessage command)
+    void SearchDiscordCommand(SocketMessage command)
     {
         string[] commandString = command.Content.Remove(0, 1).Split(" ");
         switch (commandString[0])
@@ -208,85 +214,148 @@ partial class Program
                 switch (commandString[1])
                 {
                     case "start":
-                        ReadAllContentFromProcess();
-                        StartMCServer();
+                        //ReadAllContentFromProcess();
+                        try
+                        {
+                            if (!process.HasExited)
+                            {
+                                DisplayStuffInDC("Der Server läuft bereits （￣︶￣）↗　", (ITextChannel)command.Channel);
+                            }
+                            else
+                            {
+                                throw new("Works As Intendet");
+                            }
+                        }
+                        catch { StartMCServer(); }
+
                         break;
                     case "stop"://Check einbauen, dass der server nicht gestoppt werden, kann wenn jemand noch online ist.
-                        ShouldServerStop();
+                        try
+                        {
+                            ShouldServerStop();
+                        }
+                        catch { DisplayStuffInDC("Server schon tot", (ITextChannel)command.Channel); }
                         break;
                 }
                 break;
         }
     }
-    void WriteToProcess(string promt)
-    {
-        // Example of writing to the command line program
-        inputWriter.WriteLine(promt); // Replace with actual input
-    }
-    StringBuilder last250Chars = new StringBuilder();
+    private static Process process = new();
+    private static StreamReader? outputReader;
+    private static StreamWriter? inputWriter;
+    private static StringBuilder last250Chars = new StringBuilder();
+    private static readonly object lockObject = new object();
 
-    void CheckFor()
+    void WriteToProcess(string prompt)
     {
-        last250Chars.ToString().Contains("");
+
+        process.StandardInput.WriteLine(prompt);
+
     }
-    void ShouldServerStop()
+
+    bool CheckForOnlinePlayer()
     {
         WriteToProcess("list");
-        CheckFor();
-        WriteToProcess("stop");
+        string line = process.StandardOutput.;
+        Console.WriteLine(line);
+        if (line.Contains("[Server thread/INFO]: There are 0 of a max of 10 players online:")) return false;
+        return true;
     }
-    void ReadAllContentFromProcess()
+    bool CheckForPlayerDisconnect()
     {
+        string pattern = @"Server thread/INFO: (?<playerName>.+) lost connection: Disconnected";
+        return Regex.IsMatch(last250Chars.ToString(), pattern);
+    }
+
+    void ShouldServerStop()
+    {
+        if (!CheckForOnlinePlayer())
+        WriteToProcess("stop");
+        process.Close();
+    }
+
+    async Task MonitorPlayersAsync()
+    {
+        while (true)
+        {
+            WriteToProcess("list");
+            Console.WriteLine("checking for shudown");
+            await Task.Delay(1000); // Wait for a second before checking again
+            ShouldServerStop();
+        }
+    }
+    public async Task ReadAllContentFromProcess()
+    {
+        ushort characterLimit = 5000;
+
+
+        outputReader = process.StandardOutput;
 
         // Event handler for output data received
-        ushort charakterlimit = 5000;
         process.OutputDataReceived += (sender, e) =>
         {
             if (e.Data != null) // Check if there's data
             {
                 // Append the new output to the StringBuilder
-                last250Chars.Append(e.Data);
+                last250Chars.Append(e.Data + Environment.NewLine);
 
-                // If the length exceeds 250 characters, trim it
-                if (last250Chars.Length > charakterlimit)
+                // If the length exceeds the character limit, trim it
+                if (last250Chars.Length > characterLimit)
                 {
-                    last250Chars.Remove(0, last250Chars.Length - charakterlimit);
+                    // Keep only the last 'characterLimit' characters
+                    last250Chars.Remove(0, last250Chars.Length - characterLimit);
                 }
             }
         };
 
-        // Wait for the process to exit
-        process.WaitForExit();
-    }
+        // Start reading the output stream asynchronously
+        process.BeginOutputReadLine();
 
-    static Process process = new();
-    // Read output asynchronously
-    StreamReader outputReader = process.StandardOutput;
-    StreamWriter inputWriter = process.StandardInput;
+        // Await the process to exit
+        await Task.Run(() => process.WaitForExit());
+    }
     void StartMCServer()
     {
-        // Specify the command to run
-        string command = "./BMC_Server"; // e.g., "ping"
-        
+        string scriptPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @".\BMC_Server\start.ps1" : @".\BMC_Server\start.sh";
 
-        // Create a new process
-        process.StartInfo.FileName = "/bin/bash";
+        Console.WriteLine(File.Exists(scriptPath));
+        ProcessStartInfo processInfo = new ProcessStartInfo
+        {
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" : "/bin/bash",
+            Arguments = $"-ExecutionPolicy Bypass -File \"{scriptPath}\"",
+            RedirectStandardOutput = true,
+            RedirectStandardInput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        if (process.StartInfo.CreateNoWindow != true)
+        {
+            // Create a new process
+            process.StartInfo = processInfo;
+        }
         //string arguments = "your_arguments_here"; // e.g., "google.com"
         //process.StartInfo.Arguments = arguments;
-        process.StartInfo.UseShellExecute = false; // Do not use OS shell
-        process.StartInfo.RedirectStandardOutput = true; // Redirect output
-        process.StartInfo.RedirectStandardInput = true; // Redirect input
-        process.StartInfo.CreateNoWindow = true; // Do not create a window
-
+        process.StartInfo.EnvironmentVariables["JAVA_HOME"] = @"C:\Path\To\Java";
+        process.StartInfo.EnvironmentVariables["Path"] = @"C:\Path\To\Java\bin;" + Environment.GetEnvironmentVariable("Path");
         // Start the process
+
+        //Task.Run(() => ReadAllContentFromProcess());
+        ReadAllContentFromProcess();
+
         process.Start();
+        // Start monitoring players in a separate task
+        //Task.Run(() => MonitorPlayersAsync());
+        Console.WriteLine("Server Start");
     }
     void StopItGetSomeHelp(ISocketMessageChannel channel)
     {
         //Command Ideen:
         //guthib: link zum github
-        string i = "!help\t\t\tHilfe!\n!alphastats\t\tGibt Statistiken des Alphabet-Thread aus";
-        DisplayStuffInDC(i, channel as ITextChannel);
+        string i = "!help\t\t\tHilfe!" +
+            "\n!alphastats\t\tGibt Statistiken des Alphabet-Thread aus" +
+            "\n!guthip";
+        DisplayStuffInDC(i, (ITextChannel)channel);
     }
     bool CheckValidCommand(SocketMessage Message)
     {
@@ -295,7 +364,6 @@ partial class Program
         {
             return true;
         }
-        Message.DeleteAsync();
         return false;
     }
     private void AddReactionAsync(SocketMessage message)
