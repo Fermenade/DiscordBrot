@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -7,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Timers;
+using DGruppensuizidBot;
 
 partial class Program
 {
@@ -29,6 +30,10 @@ partial class Program
     SocketMessage Deletedmessage;
     byte TeaThinkCounter = 0;
     ushort messageCount;
+    private static string _prefixPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)?@"serverStuff\":@"serverStuff/";
+    string _pathActivities = $"{_prefixPath}activities.txt";
+    string _pathCommands = $"{_prefixPath}alphabetMessages.txt";
+    string _pathToken =  $"{_prefixPath}token.txt";
     public async Task RunBotAsync() //Async
     {
         DiscordSocketConfig config = new DiscordSocketConfig
@@ -40,7 +45,12 @@ partial class Program
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
 
-        string token = File.ReadAllText("token.txt"); // Sike, ihr kriegt keinen Token
+        if (!Directory.Exists(_prefixPath))
+        {
+            Directory.CreateDirectory(_prefixPath);
+        }
+
+        string token = File.ReadAllText(_pathToken); // Sike, ihr kriegt keinen Token
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
         _client.Ready += OnReady; //I'm ready!!! I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready
@@ -115,7 +125,17 @@ partial class Program
             await Task.Delay(0);//await zerrrrrooooooo!
         }
     }
+    public async Task ReplyToMessage(SocketMessage message, string replyText)
+    {
+        if (message is SocketUserMessage userMessage)
+        {
+            var channel = userMessage.Channel;
+            var messageReference = new MessageReference(userMessage.Id);
 
+            // Antwort senden
+            await channel.SendMessageAsync(replyText, messageReference: messageReference);
+        }
+    }
     private async Task MessageReceived(SocketMessage message)
     {
         if (message.Channel is SocketThreadChannel threadChannel && threadChannel.Id == _ThreadAlphabetBack)
@@ -176,31 +196,36 @@ partial class Program
         }
         else if (message.Channel.Id == _TBoardCommands)
         {
-            if (CheckValidCommand(message) || message.Author == GetBotID(message))
-                SearchDiscordCommand(message);
-            else
+            if (message.Author != GetBotID(message))
             {
-                await message.DeleteAsync();
+                if (CheckValidCommand(message))
+                    SearchDiscordCommand(message);
+                else
+                {
+                    await message.DeleteAsync();
+                }
             }
         }
-        if (message is SocketUserMessage userMessage && message.Author is SocketUser user) /*&&  !message.Author.IsBot*/
-        {
-            if (message.Channel is SocketDMChannel || message.MentionedUsers.Any(u => u.Id == _client.CurrentUser.Id))
-            {
-                Console.WriteLine($"Message from {message.Author}: {message.Content}");
-
-                // Prompt for a response
-                Console.Write("Enter your response: ");
-                string response = Console.ReadLine();
-                if (response == "") return;
-                // Send the response back to the channel
-                await message.Channel.SendMessageAsync(response);
-            }
-        }
+        // if (message is SocketUserMessage userMessage && message.Author is SocketUser user) /*&&  !message.Author.IsBot*/
+        // {
+        //     if (message.Channel is SocketDMChannel || message.MentionedUsers.Any(u => u.Id == _client.CurrentUser.Id))
+        //     {
+        //         Console.WriteLine($"Message from {message.Author}: {message.Content}");
+        //
+        //         // Prompt for a response
+        //         Console.Write("Enter your response: ");
+        //         string response = Console.ReadLine();
+        //         if (response == "") return;
+        //         // Send the response back to the channel
+        //         await message.Channel.SendMessageAsync(response);
+        //     }
+        // }
     }
+    SocketMessage? _userThatStartedServer;
     void SearchDiscordCommand(SocketMessage command)
     {
         string[] commandString = command.Content.Remove(0, 1).Split(" ");
+
         switch (commandString[0])
         {
             case "help":
@@ -215,167 +240,335 @@ partial class Program
                 {
                     case "start":
                         //ReadAllContentFromProcess();
-                        try
-                        {
-                            if (!process.HasExited)
+                            if (_process != null)
                             {
                                 DisplayStuffInDC("Der Server läuft bereits （￣︶￣）↗　", (ITextChannel)command.Channel);
                             }
                             else
                             {
-                                throw new("Works As Intendet");
+                                _userThatStartedServer = command;
+                                StartMcServer();
+                                DisplayStuffInDC("Server gestartet...",  (ITextChannel)command.Channel);
                             }
-                        }
-                        catch { StartMCServer(); }
 
                         break;
                     case "stop"://Check einbauen, dass der server nicht gestoppt werden, kann wenn jemand noch online ist.
-                        try
-                        {
-                            ShouldServerStop();
-                        }
-                        catch { DisplayStuffInDC("Server schon tot", (ITextChannel)command.Channel); }
+                        // try
+                        // {
+                        //     
+                        // }
+                        // catch { DisplayStuffInDC("Server schon tot", (ITextChannel)command.Channel); }
+                        break;
+                    case "stats":
+                        DisplayStuffInDC(BuildServerstats(), command.Channel);
+                        break;
+                    case "halloffame":
+                        DisplayStuffInDC(BuildServerHalloffame(), command.Channel);
                         break;
                 }
                 break;
         }
     }
-    private static Process process = new();
-    private static StreamReader? outputReader;
-    private static StreamWriter? inputWriter;
-    private static StringBuilder last250Chars = new StringBuilder();
-    private static readonly object lockObject = new object();
 
-    void WriteToProcess(string prompt)
+    EmbedBuilder BuildServerHalloffame()
     {
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+        {
+            Title = "Hall Of Fame",
+            Color = Color.Gold,
+        };
+        HallOfFame COLLECTION = new HallOfFame();
+        var s = COLLECTION.GetEntries();
+        foreach (ScoreEntry VARIABLE in s)
+        {
+            string a = "";
+            foreach (var VARIABLE1 in VARIABLE.Description)
+            {
+                a += VARIABLE1 + " ";
+            }
 
-        process.StandardInput.WriteLine(prompt);
-
+            if (string.IsNullOrWhiteSpace(a)) break;
+            embedBuilder.AddField(FormatDifference(VARIABLE.Time), a);
+        }
+        return embedBuilder;
     }
 
-    bool CheckForOnlinePlayer()
+    private bool ServerOnline = false;
+    EmbedBuilder BuildServerstats()
+    {
+        var embed = new EmbedBuilder
+        {
+            Title = "Server Status",
+            Color = Color.Green,
+        };
+        if (_process != null)
+        {
+            if (ServerOnline)
+            {
+                embed.AddField("Status:", "Online");
+            }
+            else
+            {
+                embed.AddField("Status:", "Booting...");
+            }
+
+            embed.AddField("Hobbylose:", $"{ActivePlayers.Count}");
+            embed.AddField("MC wird seit", $"{FormatDifference(CalculateDifference())} gesuchtet");
+        }
+        else
+        {
+            embed.AddField("Status:", "Offline");
+        }
+
+        return embed;
+    }
+TimeSpan shutdownTime = TimeSpan.FromMinutes(10);
+    TimeSpan CalculateDifference()
+    {
+        if(ServerOnline)
+        endTime = DateTime.Now-shutdownTime;
+        // Calculate the difference
+        TimeSpan timeSpan = endTime - startTime;
+        // Output the result
+        return timeSpan;
+    }
+
+    string FormatDifference(TimeSpan timeSpan)
+    {
+        int years = 0;
+        int months = 0;
+        int days = timeSpan.Days;
+        int hours = timeSpan.Hours;
+        int minutes = timeSpan.Minutes;  // Calculate minutes
+        int seconds = timeSpan.Seconds;
+ 
+        // Build the output string
+        string result = $"{FormatPlural(years,"Jahr")} {FormatPlural(months, "Monat")} {FormatPlural(days, "Tag")} " +
+                        $"{FormatPlural(hours, "Stunde")} {FormatPlural(minutes,"Minute")} {FormatPlural(seconds, "Sekunde")}";
+        return result;
+    }
+
+    static string FormatPlural(int count, string singular)
     {
         
-        //process.StandardOutput.BaseStream.Seek(0,SeekOrigin.End);
-        WriteToProcess("list");
-        int i = 0;
-        while (i < 100)
+        if(count == 0 && singular != "Sekunde") return ""; 
+        Dictionary<string, string> pluralForms = new Dictionary<string, string> 
+        { 
+            { "Jahr", "Jahre" }, 
+            { "Monat", "Monate" }, 
+            { "Tag", "Tage" },
+            { "Stunde", "Stunden" }, 
+            { "Minute", "Minuten" }, 
+            { "Sekunde", "Sekunden" }
+            };
+            return count == 1 ? $"{count} {singular}" : $"{count} {pluralForms[singular]}";
+    }
+ 
+    
+    private static Process? _process =  null;
+    List<string> OnlinePlayersDuringSession = new(10);
+    List<string> ActivePlayers =  new(10);
+    DateTime startTime;
+    DateTime endTime;
+        async void StartMcServer()
         {
-            string line = process.StandardOutput.ReadLine();
-            Console.WriteLine(line);
+            string scriptPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? @$".\{_prefixPath}BMC_Server\start.ps1"
+                :
+                @$"./{_prefixPath}BMC_Server/start.sh";
+            ProcessStartInfo processInfo = new ProcessStartInfo
+            {
+                FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" :  @"/bin/bash",
+                
+                Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"-ExecutionPolicy Bypass -File \"{scriptPath}\"":scriptPath,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            _process = new();
+            if (_process.StartInfo.CreateNoWindow != true)
+            {
+                // Create a new process
+                _process.StartInfo = processInfo;
+            }
+
+            if (!File.Exists(scriptPath))
+            {
+                throw new FileNotFoundException();
+            }
+            
+            _process.Start();
+            
+            //der InputStreamWriter muss nach dem process.Start() folgen, da sonst ein error gethrowt wird, hat garnicht lange gerbraucht das herauszufinden.
+            ReadAllContentFromProcess();
+            
+            //await Task.Run(() => _process.WaitForExit());
         }
-
-        //if (line.Contains("[Server thread/INFO]: There are 0 of a max of 10 players online:")) return false;
-        return true;
-    }
-    bool CheckForPlayerDisconnect()
-    {
-        string pattern = @"Server thread/INFO: (?<playerName>.+) lost connection: Disconnected";
-        return Regex.IsMatch(last250Chars.ToString(), pattern);
-    }
-
-    void ShouldServerStop()
-    {
-        if (!CheckForOnlinePlayer()) ;
-        WriteToProcess("stop");
-        process.Close();
-    }
-
-    async Task MonitorPlayersAsync()
-    {
-        while (true)
+        public void ReadAllContentFromProcess()
+        {
+            // Event handler for output data received
+            _process.OutputDataReceived += HandleRecivedServerData;
+            _process.BeginOutputReadLine();
+        }
+        void WriteToProcess(string prompt)
+        {
+            _process.StandardInput.WriteLine(prompt);
+        }
+        void ListPlayerOnServer()
         {
             WriteToProcess("list");
-            Console.WriteLine("checking for shudown");
-            await Task.Delay(1000); // Wait for a second before checking again
-            ShouldServerStop();
         }
-    }
-    public async Task ReadAllContentFromProcess()
-    {
-        ushort characterLimit = 5000;
-
-
-        outputReader = process.StandardOutput;
-
-        // Event handler for output data received
-        process.OutputDataReceived += (sender, e) =>
+        private  System.Timers.Timer  checkForOnlinePlayerTimer;
+        void StartServerstopCountDownTimer()
         {
-            if (e.Data != null) // Check if there's data
+            checkForOnlinePlayerTimer = new System.Timers.Timer()
             {
-                // Append the new output to the StringBuilder
-                last250Chars.Append(e.Data + Environment.NewLine);
+                //Interval = 1000 * 60 * 0.5,//Nach 10 min soll der 
+                Interval = shutdownTime.TotalMilliseconds,
+                AutoReset = false
+            };
+            checkForOnlinePlayerTimer.Start();
+            checkForOnlinePlayerTimer.Elapsed += ServerStop;
+        }
+        void StopServerstopCountDownTimer()
+        {
+            checkForOnlinePlayerTimer.Stop();
+            checkForOnlinePlayerTimer.Elapsed -= ServerStop;
+            checkForOnlinePlayerTimer.Dispose();
+        }
 
-                // If the length exceeds the character limit, trim it
-                if (last250Chars.Length > characterLimit)
+
+        private bool _susysusus;
+        void HandleRecivedServerData(object sender, DataReceivedEventArgs e)
+        {
+
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+// #if  DEBUG
+//                 Console.WriteLine("Output: " + e.Data);
+// #endif
+
+                
+                string data = e.Data;
+                //[02:14:50] [Server thread/INFO]:
+                // string serverPrefix = @"$$(\\d{2}:\\d{2}:\\d{2})$$ $$Server thread/INFO$$:";
+                // string serverIsReady = @$"{serverPrefix} Done $(\\d+(\\.\\d+)?)s$! For help, type ""help""";
+                string serverPrefix = @"\[(\d{2}:\d{2}:\d{2})\] \[Server thread/INFO\]:";
+                string serverIsReady = @$"{serverPrefix} Done \((\d+(\.\d+)?)s\)! For help, type ""help""";
+
+                //string serverIsReady = @$"{serverPrefix} Done $(\\d+(\\.\\d+)?)s$! For help, type ""help""";
+                
+                string playerConnectPattern = @$"{serverPrefix} (?<playername>[a-zA-Z0-9_]+) joined the game";
+                string playerDiconnectPattern = @$"{serverPrefix} (?<playername>[a-zA-Z0-9_]+) lost connection: Disconnected$";
+                string serverIsEmpty = @$"{serverPrefix} There are 0 of a max of (\d+) players online:.*";
+                // Done (0.838s)! For help, type \"help\"
+                string serverShutdown = @$"{serverPrefix} Stopped IO worker!";
+                //serverShutdown = @$"{serverPrefix} ThreadedAnvilChunkStorage: All dimensions are saved";
+                
+                Match match;
+                if (Regex.IsMatch(data, serverIsReady))//Letzte nachricht, wenn der server hochgefahren wurde
                 {
-                    // Keep only the last 'characterLimit' characters
-                    last250Chars.Remove(0, last250Chars.Length - characterLimit);
+                    ReplyToMessage(_userThatStartedServer, "Online!");
+                    ListPlayerOnServer();//Der Server soll gleich in den shutdown timer laufen lassen, damit falls keine person joinen sollte der server nicht online bleibt
+                    _susysusus = true;
+                    startTime = DateTime.Now;
+                    ServerOnline = true;
+                    //leuten ne sperre verpassen, die den server hochfahren ohne das dieser benutzt wird.
+                }
+                else if (Regex.IsMatch(data,serverShutdown))//Server Shutdown
+                {
+                    ServerOnline = false;
+                    //See if Run comes into hall of fame
+                    HallOfFame s = new HallOfFame(CalculateDifference(),OnlinePlayersDuringSession.OrderBy(x=>x).ToArray());
+                    FreeAllResources();
+                }
+                else if (Regex.IsMatch(data,playerDiconnectPattern))//check if player disconnected
+                {
+                    match = Regex.Match(data, playerDiconnectPattern);
+
+                    if (match.Success)
+                    {
+                        string playerName = match.Groups["playername"].Value;
+                        ActivePlayers.Remove(playerName);
+                    }
+
+                    ListPlayerOnServer();
+                }
+                else if (Regex.IsMatch(data,playerConnectPattern)) //check if player connected
+                {
+                    match = Regex.Match(data, playerConnectPattern);
+
+                    if (match.Success)
+                    {
+                        string playerName = match.Groups["playername"].Value;
+                        OnlinePlayersDuringSession.Add(playerName);
+                        ActivePlayers.Add(playerName);
+                    }
+
+                    _susysusus = false;
+                    if (checkForOnlinePlayerTimer.Enabled)//If Shutdown was Started, it will stop it
+                    {
+                        StopServerstopCountDownTimer();
+                    }
+                }
+                else if (Regex.IsMatch(data, serverIsEmpty))//check if server is empty
+                {
+                    StartServerstopCountDownTimer();
+                }
+                
+                async void FreeAllResources()
+                {
+                    _userThatStartedServer = null;
+                    checkForOnlinePlayerTimer.Elapsed -= ServerStop;
+                    checkForOnlinePlayerTimer.Dispose();
+                    _process.OutputDataReceived -= HandleRecivedServerData;
+                    await _process.WaitForExitAsync();
+                    _process.Dispose();
+                    _process = null;
                 }
             }
-        };
-
-        // Start reading the output stream asynchronously
-        process.BeginOutputReadLine();
-
-        // Await the process to exit
-        await Task.Run(() => process.WaitForExit());
-    }
-    void StartMCServer()
-    {
-        string scriptPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @".\BMC_Server\start.ps1" : @".\BMC_Server\start.sh";
-
-        Console.WriteLine(File.Exists(scriptPath));
-        ProcessStartInfo processInfo = new ProcessStartInfo
-        {
-            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" : "/bin/bash",
-            Arguments = $"-ExecutionPolicy Bypass -File \"{scriptPath}\"",
-            RedirectStandardOutput = true,
-            RedirectStandardInput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-        if (process.StartInfo.CreateNoWindow != true)
-        {
-            // Create a new process
-            process.StartInfo = processInfo;
+            
         }
-        //string arguments = "your_arguments_here"; // e.g., "google.com"
-        //process.StartInfo.Arguments = arguments;
-        process.StartInfo.EnvironmentVariables["JAVA_HOME"] = @"C:\Path\To\Java";
-        process.StartInfo.EnvironmentVariables["Path"] = @"C:\Path\To\Java\bin;" + Environment.GetEnvironmentVariable("Path");
-        // Start the process
-
-        //Task.Run(() => ReadAllContentFromProcess());
-        ReadAllContentFromProcess();
-
-        process.Start();
-        // Start monitoring players in a separate task
-        //Task.Run(() => MonitorPlayersAsync());
-        Console.WriteLine("Server Start");
-    }
+        void ServerStop(object? sender, ElapsedEventArgs e)//If Timer ran out method gets triggered
+        {
+            // Also, jetzt kann die Frage sein: Ey, warum wird hier nicht abgeprüft ob der Server leer ist oder nicht?
+            // nun, die Antwort ist: es ist nicht nötig, wenn ich alles richtig gemacht hab (Zukunftsich bitte bestätige mich)
+            // dann sollte diese methode immer ausgetragen werden wenn ein spieler connected.
+            if (_susysusus)//wenn jemand rein trollt und den server startet obwohl er garnicht die intention hat daraufzugehen
+            {
+                //TODO: Add logic here.
+            }
+            
+                WriteToProcess("stop");//write the stop command to process
+            
+        }
     void StopItGetSomeHelp(ISocketMessageChannel channel)
     {
         //Command Ideen:
         //guthib: link zum github
-        string i = "!help\t\t\tHilfe!" +
+        string i = "!help\t\t\t\tHilfe!" +
             "\n!alphastats\t\tGibt Statistiken des Alphabet-Thread aus" +
+            "\n!server start\t\t\tStartet Server"+
             "\n!guthip";
         DisplayStuffInDC(i, (ITextChannel)channel);
     }
     bool CheckValidCommand(SocketMessage Message)
     {
         string command = Message.Content;
-        if (command[0].ToString() == "!")
+        if (!string.IsNullOrEmpty(command))
         {
-            return true;
+            if (command[0].ToString() == "!")
+            {
+                return true;
+            }
         }
+
         return false;
     }
     private void AddReactionAsync(SocketMessage message)
     { // name überschneidet sich mit methode die mit punkt aufgerufen wird (ja hab den begriff vergessen)
-        CreateScoreboardFile();
         message.AddReactionAsync(new Emoji("🐟"));
         AddUserPoint(message.Author);
     }
@@ -384,13 +577,14 @@ partial class Program
         Dictionary<ulong, object[]>? map = ReadScoreboard();//Mir gefällt nicht, wie wir das Scoreboard lesen müssen, damit wir in das Scoreboard Schreiben können
         WriteScoreboard(map, user);
     }
-    string scorefilepath = "scores.json";
+    string scorefilepath = $"{_prefixPath}DiscordUserData.json";//TODO: Rewrite AlphabetScore to UserData
     private void CreateScoreboardFile()
     {
         if (!File.Exists(scorefilepath)) File.Create(scorefilepath);
     }
-    private Dictionary<ulong, object[]>? ReadScoreboard()//user id speichern weil name uneindeutig
+    private Dictionary<ulong, object[]>? ReadScoreboard()
     {
+        CreateScoreboardFile();
         Dictionary<ulong, object[]> map = new();
         FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Read);
         try
@@ -430,7 +624,7 @@ partial class Program
         await channel.SendMessageAsync(text);
     }
     //    private void WriteScoreboard<T>(T type)
-    private void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
+    void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
     {
         map ??= [];//wenn file korrupt oder (noch) leer
         if (!map.ContainsKey(user.Id)) map.Add(user.Id, [user.Username, 0]);
@@ -464,7 +658,7 @@ partial class Program
         CheckIfChannelExists(channel);
         while (!cancellationToken.IsCancellationRequested)
         {
-            string[] lines = await File.ReadAllLinesAsync("..\\..\\..\\AlphabetMessages.txt");
+            string[] lines = await File.ReadAllLinesAsync(_pathCommands);
 
             // Select a random line from the filtered lines
             string selectedLine = lines[_random.Next(lines.Length)];
@@ -597,7 +791,18 @@ partial class Program
 
         foreach (IMessage msg in messages.Reverse())
         {
-            if (!CheckFormat(msg)) { AddReactionAsync((SocketMessage)msg); continue; }
+            try
+            {
+                if (!CheckFormat(msg))
+                {
+                    AddReactionAsync((SocketMessage)msg);
+                    continue;
+                }
+            }
+            catch(InvalidCastException)
+            {
+                continue;
+            }
 
             if (Streak.currentIndex == 0)
             {
@@ -743,7 +948,9 @@ partial class Program
             }
 
             // Read messages from the text file
-            string[] lines = await File.ReadAllLinesAsync("Activities.txt");
+            if(!File.Exists(_pathActivities))
+                File.Create(_pathActivities);
+            string[] lines = await File.ReadAllLinesAsync(_pathActivities);
             var filteredLines = lines.Where(x => x.Split("@")[0] == $"{i}").ToArray();
 
             if (filteredLines.Length > 0)
