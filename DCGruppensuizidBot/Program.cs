@@ -1,26 +1,24 @@
 ﻿using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
+using DGruppensuizidBot;
+using DGruppensuizidBot.commands;
 
-partial class Program
+class Program
 {
     private DiscordSocketClient _client;
 
     static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
     private SocketUserMessage _LastUserMessage;
+    
+
     private KeyValuePair<IUser, string> _LastUserMessageFallback;
+
     //private readonly ulong _ThreadAlphabetBack = 1215011525195075636;
     //private readonly ulong _TBoardChernobil = 1186307797453918259;
-    private readonly ulong _TBoardGeneral = 849240846125367378;
-    private ulong _ThreadAlphabetBack = 1215011525195075636;
-    private ulong _TBoardChernobil = 1186307797453918259;
-    private ulong _TBoardCommands = 1341062745306431518;
     private TaskCompletionSource<bool> _readyCompletionSource = new();
     private CancellationTokenSource _cancellationTokenSource = new();
     private CancellationTokenSource _cancellationTokenDayTime = new();
@@ -29,21 +27,29 @@ partial class Program
     SocketMessage Deletedmessage;
     byte TeaThinkCounter = 0;
     ushort messageCount;
+
     public async Task RunBotAsync() //Async
     {
         DiscordSocketConfig config = new DiscordSocketConfig
         {
-            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.Guilds | GatewayIntents.GuildMessages, //Braucht es, weil baum
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.Guilds |
+                             GatewayIntents.GuildMessages, //Braucht es, weil baum
         };
 
 
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
 
-        string token = File.ReadAllText("token.txt"); // Sike, ihr kriegt keinen Token
+        if (!Directory.Exists(_prefixPath))
+        {
+            Directory.CreateDirectory(_prefixPath);
+        }
+
+        string token = File.ReadAllText(_pathToken); // Sike, ihr kriegt keinen Token
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
-        _client.Ready += OnReady; //I'm ready!!! I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready
+        _client.Ready +=
+            OnReady; //I'm ready!!! I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready
 
         await _readyCompletionSource.Task;
 
@@ -58,32 +64,37 @@ partial class Program
         // Block the program until it is closed (:
         await Task.Delay(-1);
     }
+
     private Task OnReady()
     {
         _readyCompletionSource.SetResult(true); // Signal that the bot is ready
         return Task.CompletedTask; // He is Ready!!!
     }
+
     private Task Log(LogMessage arg)
     {
         Console.WriteLine(arg);
         return Task.CompletedTask; //She is readyy!!
     }
 
-    private ConcurrentQueue<Cacheable<IMessage, ulong>> _messageQueue = new ConcurrentQueue<Cacheable<IMessage, ulong>>(); //Interfaces :)
+    private ConcurrentQueue<Cacheable<IMessage, ulong>> _messageQueue =
+        new ConcurrentQueue<Cacheable<IMessage, ulong>>(); //Interfaces :)
+
     private bool _isProcessingQueue = false; // damit wenn noch in arbeit weiter gearbeitet wird
 
-    private async Task MessageDeleted(Cacheable<IMessage, ulong> cachedMessage, Cacheable<IMessageChannel, ulong> channel)
+    private async Task MessageDeleted(Cacheable<IMessage, ulong> cachedMessage,
+        Cacheable<IMessageChannel, ulong> channel)
     {
         //if (channel.Id == _ThreadAlphabetBack)
         {
             // Enqueue the message
-            _messageQueue.Enqueue(cachedMessage);//enqhene
+            _messageQueue.Enqueue(cachedMessage); //enqhene
 
             // Start processing if not already processing
-            if (!_isProcessingQueue)//wenn nicht dann doch
+            if (!_isProcessingQueue) //wenn nicht dann doch
             {
                 _isProcessingQueue = true;
-                await ProcessMessageQueue(channel);//asnyc
+                await ProcessMessageQueue(channel); //asnyc
                 _isProcessingQueue = false;
             }
         }
@@ -112,7 +123,20 @@ partial class Program
                     _LastUserMessage = null;
                 }
             }
-            await Task.Delay(0);//await zerrrrrooooooo!
+
+            await Task.Delay(0); //await zerrrrrooooooo!
+        }
+    }
+
+    public async Task ReplyToMessage(SocketMessage message, string replyText)
+    {
+        if (message is SocketUserMessage userMessage)
+        {
+            var channel = userMessage.Channel;
+            var messageReference = new MessageReference(userMessage.Id);
+
+            // Antwort senden
+            await channel.SendMessageAsync(replyText, messageReference: messageReference);
         }
     }
 
@@ -129,7 +153,8 @@ partial class Program
                         if (GetCombination(message) != GetNextCombination(GetCombination(_LastUserMessage)))
                         {
                             AddReactionAsync(message);
-                            _LastUserMessageFallback = new KeyValuePair<IUser, string>(message.Author, GetNextCombination(GetCombination(_LastUserMessage)));
+                            _LastUserMessageFallback = new KeyValuePair<IUser, string>(message.Author,
+                                GetNextCombination(GetCombination(_LastUserMessage)));
                             _LastUserMessage = null;
                         }
                         else
@@ -141,11 +166,21 @@ partial class Program
                     else
                     {
                         Deletedmessage = message;
-                        await message.DeleteAsync();//wenn schon dann nicht mehr
+                        await message.DeleteAsync(); //wenn schon dann nicht mehr
                     }
                 }
                 else
                 {
+                    /* TODO: fix this (unknown cause)
+                     * Unhandled exception. Discord.Net.HttpException: The server responded with error 10008: Unknown Message
+   at Discord.Net.Queue.RequestBucket.SendAsync(RestRequest request)
+   at Discord.Net.Queue.RequestQueue.SendAsync(RestRequest request)
+   at Discord.API.DiscordRestApiClient.SendInternalAsync(String method, String endpoint, RestRequest request)
+   at Program.RemoveFishReactionAsync(SocketMessage message) in /mnt/0_WorkWindows/Users/dumblecore/source/repos/GruppensuizidDC/DCGruppensuizidBot/Program.cs:line 666
+   at System.Threading.Tasks.Task.<>c.<ThrowAsync>b__128_1(Object state)
+   at System.Threading.ThreadPoolWorkQueue.Dispatch()
+   at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()
+                     */
                     if (_LastUserMessageFallback.Key.Id != message.Author.Id)
                     {
                         if (GetCombination(message) != GetNextCombination(_LastUserMessageFallback.Value))
@@ -153,7 +188,8 @@ partial class Program
                             AddReactionAsync(message);
                             Console.WriteLine(GetCombination(message));
                             Console.WriteLine(GetNextCombination(_LastUserMessageFallback.Value));
-                            _LastUserMessageFallback = new KeyValuePair<IUser, string>(message.Author, GetNextCombination(_LastUserMessageFallback.Value));
+                            _LastUserMessageFallback = new KeyValuePair<IUser, string>(message.Author,
+                                GetNextCombination(_LastUserMessageFallback.Value));
                             _LastUserMessage = null;
                         }
                         else
@@ -174,223 +210,59 @@ partial class Program
                 await message.DeleteAsync();
             }
         }
-        else if (message.Channel.Id == _TBoardCommands)
+        else if (message.Channel.Id == Serverstuff._TBoardCommands)
         {
-            if (CheckValidCommand(message) || message.Author == GetBotID(message))
-                SearchDiscordCommand(message);
-            else
+            if (message.Author != GetBotID(message))
             {
-                await message.DeleteAsync();
+                Command DasGroßeDing = new Command(message.Content,message);
+                CommandManager.ExecuteCommand(DasGroßeDing);
             }
         }
-        if (message is SocketUserMessage userMessage && message.Author is SocketUser user) /*&&  !message.Author.IsBot*/
-        {
-            if (message.Channel is SocketDMChannel || message.MentionedUsers.Any(u => u.Id == _client.CurrentUser.Id))
-            {
-                Console.WriteLine($"Message from {message.Author}: {message.Content}");
-
-                // Prompt for a response
-                Console.Write("Enter your response: ");
-                string response = Console.ReadLine();
-                if (response == "") return;
-                // Send the response back to the channel
-                await message.Channel.SendMessageAsync(response);
-            }
-        }
+        // if (message is SocketUserMessage userMessage && message.Author is SocketUser user) /*&&  !message.Author.IsBot*/
+        // {
+        //     if (message.Channel is SocketDMChannel || message.MentionedUsers.Any(u => u.Id == _client.CurrentUser.Id))
+        //     {
+        //         Console.WriteLine($"Message from {message.Author}: {message.Content}");
+        //
+        //         // Prompt for a response
+        //         Console.Write("Enter your response: ");
+        //         string response = Console.ReadLine();
+        //         if (response == "") return;
+        //         // Send the response back to the channel
+        //         await message.Channel.SendMessageAsync(response);
+        //     }
+        // }
     }
+MinecraftServer _server = null;
     void SearchDiscordCommand(SocketMessage command)
     {
-        string[] commandString = command.Content.Remove(0, 1).Split(" ");
-        switch (commandString[0])
-        {
-            case "help":
-                StopItGetSomeHelp(command.Channel);
-                break;
-            case "alphastats":
-                if (!File.Exists(scorefilepath)) break;
-                PrintAlphabetStats(ReadScoreboard(), command.Channel);
-                break;
-            case "server":
-                switch (commandString[1])
-                {
-                    case "start":
-                        //ReadAllContentFromProcess();
-                        try
-                        {
-                            if (!process.HasExited)
-                            {
-                                DisplayStuffInDC("Der Server läuft bereits （￣︶￣）↗　", (ITextChannel)command.Channel);
-                            }
-                            else
-                            {
-                                throw new("Works As Intendet");
-                            }
-                        }
-                        catch { StartMCServer(); }
-
-                        break;
-                    case "stop"://Check einbauen, dass der server nicht gestoppt werden, kann wenn jemand noch online ist.
-                        try
-                        {
-                            ShouldServerStop();
-                        }
-                        catch { DisplayStuffInDC("Server schon tot", (ITextChannel)command.Channel); }
-                        break;
-                }
-                break;
-        }
-    }
-    private static Process process = new();
-    private static StreamReader? outputReader;
-    private static StreamWriter? inputWriter;
-    private static StringBuilder last250Chars = new StringBuilder();
-    private static readonly object lockObject = new object();
-
-    void WriteToProcess(string prompt)
-    {
-
-        process.StandardInput.WriteLine(prompt);
-
+        string commandString = command.Content.Remove(0, 1);
     }
 
-    bool CheckForOnlinePlayer()
-    {
-        
-        //process.StandardOutput.BaseStream.Seek(0,SeekOrigin.End);
-        WriteToProcess("list");
-        int i = 0;
-        while (i < 100)
-        {
-            string line = process.StandardOutput.ReadLine();
-            Console.WriteLine(line);
-        }
-
-        //if (line.Contains("[Server thread/INFO]: There are 0 of a max of 10 players online:")) return false;
-        return true;
-    }
-    bool CheckForPlayerDisconnect()
-    {
-        string pattern = @"Server thread/INFO: (?<playerName>.+) lost connection: Disconnected";
-        return Regex.IsMatch(last250Chars.ToString(), pattern);
-    }
-
-    void ShouldServerStop()
-    {
-        if (!CheckForOnlinePlayer()) ;
-        WriteToProcess("stop");
-        process.Close();
-    }
-
-    async Task MonitorPlayersAsync()
-    {
-        while (true)
-        {
-            WriteToProcess("list");
-            Console.WriteLine("checking for shudown");
-            await Task.Delay(1000); // Wait for a second before checking again
-            ShouldServerStop();
-        }
-    }
-    public async Task ReadAllContentFromProcess()
-    {
-        ushort characterLimit = 5000;
-
-
-        outputReader = process.StandardOutput;
-
-        // Event handler for output data received
-        process.OutputDataReceived += (sender, e) =>
-        {
-            if (e.Data != null) // Check if there's data
-            {
-                // Append the new output to the StringBuilder
-                last250Chars.Append(e.Data + Environment.NewLine);
-
-                // If the length exceeds the character limit, trim it
-                if (last250Chars.Length > characterLimit)
-                {
-                    // Keep only the last 'characterLimit' characters
-                    last250Chars.Remove(0, last250Chars.Length - characterLimit);
-                }
-            }
-        };
-
-        // Start reading the output stream asynchronously
-        process.BeginOutputReadLine();
-
-        // Await the process to exit
-        await Task.Run(() => process.WaitForExit());
-    }
-    void StartMCServer()
-    {
-        string scriptPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @".\BMC_Server\start.ps1" : @".\BMC_Server\start.sh";
-
-        Console.WriteLine(File.Exists(scriptPath));
-        ProcessStartInfo processInfo = new ProcessStartInfo
-        {
-            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" : "/bin/bash",
-            Arguments = $"-ExecutionPolicy Bypass -File \"{scriptPath}\"",
-            RedirectStandardOutput = true,
-            RedirectStandardInput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-        if (process.StartInfo.CreateNoWindow != true)
-        {
-            // Create a new process
-            process.StartInfo = processInfo;
-        }
-        //string arguments = "your_arguments_here"; // e.g., "google.com"
-        //process.StartInfo.Arguments = arguments;
-        process.StartInfo.EnvironmentVariables["JAVA_HOME"] = @"C:\Path\To\Java";
-        process.StartInfo.EnvironmentVariables["Path"] = @"C:\Path\To\Java\bin;" + Environment.GetEnvironmentVariable("Path");
-        // Start the process
-
-        //Task.Run(() => ReadAllContentFromProcess());
-        ReadAllContentFromProcess();
-
-        process.Start();
-        // Start monitoring players in a separate task
-        //Task.Run(() => MonitorPlayersAsync());
-        Console.WriteLine("Server Start");
-    }
-    void StopItGetSomeHelp(ISocketMessageChannel channel)
-    {
-        //Command Ideen:
-        //guthib: link zum github
-        string i = "!help\t\t\tHilfe!" +
-            "\n!alphastats\t\tGibt Statistiken des Alphabet-Thread aus" +
-            "\n!guthip";
-        DisplayStuffInDC(i, (ITextChannel)channel);
-    }
-    bool CheckValidCommand(SocketMessage Message)
-    {
-        string command = Message.Content;
-        if (command[0].ToString() == "!")
-        {
-            return true;
-        }
-        return false;
-    }
     private void AddReactionAsync(SocketMessage message)
-    { // name überschneidet sich mit methode die mit punkt aufgerufen wird (ja hab den begriff vergessen)
-        CreateScoreboardFile();
+    {
+        // name überschneidet sich mit methode die mit punkt aufgerufen wird (ja hab den begriff vergessen)
         message.AddReactionAsync(new Emoji("🐟"));
         AddUserPoint(message.Author);
     }
+
     private void AddUserPoint(SocketUser user)
     {
-        Dictionary<ulong, object[]>? map = ReadScoreboard();//Mir gefällt nicht, wie wir das Scoreboard lesen müssen, damit wir in das Scoreboard Schreiben können
+        Dictionary<ulong, object[]>?
+            map = ReadScoreboard(); //Mir gefällt nicht, wie wir das Scoreboard lesen müssen, damit wir in das Scoreboard Schreiben können
         WriteScoreboard(map, user);
     }
-    string scorefilepath = "scores.json";
+
+    
+
     private void CreateScoreboardFile()
     {
         if (!File.Exists(scorefilepath)) File.Create(scorefilepath);
     }
-    private Dictionary<ulong, object[]>? ReadScoreboard()//user id speichern weil name uneindeutig
+
+    private Dictionary<ulong, object[]>? ReadScoreboard()
     {
+        CreateScoreboardFile();
         Dictionary<ulong, object[]> map = new();
         FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Read);
         try
@@ -405,6 +277,7 @@ partial class Program
             return new();
         }
     }
+
     private void PrintAlphabetStats(Dictionary<ulong, object[]> map, ISocketMessageChannel channel)
     {
         var embed = new EmbedBuilder
@@ -417,29 +290,34 @@ partial class Program
         {
             embed.AddField(kvp.Value[0].ToString(), kvp.Value[1]);
         }
+
         //IReadOnlyCollection<IThreadChannel> threads = await channel.GetActiveThreadsAsync();
         //IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == _ThreadAlphabetBack) as IThreadChannel;
         DisplayStuffInDC(embed, channel);
     }
+
     private async void DisplayStuffInDC(EmbedBuilder embed, ISocketMessageChannel channel)
     {
         await channel.SendMessageAsync(embed: embed.Build());
     }
+
     private async void DisplayStuffInDC(string text, ITextChannel channel)
     {
         await channel.SendMessageAsync(text);
     }
+
     //    private void WriteScoreboard<T>(T type)
-    private void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
+    void WriteScoreboard(Dictionary<ulong, object[]> map, SocketUser user)
     {
-        map ??= [];//wenn file korrupt oder (noch) leer
+        map ??= []; //wenn file korrupt oder (noch) leer
         if (!map.ContainsKey(user.Id)) map.Add(user.Id, [user.Username, 0]);
         map[user.Id] = [user.Username, Convert.ToInt64(map[user.Id][1].ToString()) + 1];
 
         FileStream fs = new(scorefilepath, FileMode.Open, FileAccess.Write);
-        JsonSerializer.SerializeAsync(fs, map);//Sync oder Async
+        JsonSerializer.SerializeAsync(fs, map); //Sync oder Async
         fs.Close();
     }
+
     private void CheckIfChannelExists(ITextChannel channel)
     {
         if (channel == null)
@@ -447,6 +325,7 @@ partial class Program
             throw new Exception("Channel not found.");
         }
     }
+
     private void CheckIfChannelExists(IVoiceChannel channel)
     {
         if (channel == null)
@@ -454,36 +333,41 @@ partial class Program
             throw new Exception("Channel not found.");
         }
     }
+
     private async void RemoveFishReactionAsync(SocketMessage message)
     {
-        await message.RemoveReactionAsync(new Emoji("🐟"), GetBotID(message));// soll der fehler wieder abgezogen werden, wenn der fehler ausgebessert wird?
+        await message.RemoveReactionAsync(new Emoji("🐟"),
+            GetBotID(message)); // soll der fehler wieder abgezogen werden, wenn der fehler ausgebessert wird?
     }
+
     private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
     {
         ITextChannel? channel = _client.GetChannel(_ThreadAlphabetBack) as ITextChannel;
         CheckIfChannelExists(channel);
         while (!cancellationToken.IsCancellationRequested)
         {
-            string[] lines = await File.ReadAllLinesAsync("..\\..\\..\\AlphabetMessages.txt");
+            string[] lines = await File.ReadAllLinesAsync(_pathCommands);
 
             // Select a random line from the filtered lines
             string selectedLine = lines[_random.Next(lines.Length)];
 
             if (_random.Next(4) != 0)
             {
-                selectedLine = "";// "".Split()
+                selectedLine = ""; // "".Split()
             }
+
             if (selectedLine == "ShowTotalMessageCount")
             {
                 IReadOnlyCollection<IThreadChannel> threads = await channel.GetActiveThreadsAsync();
                 IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == _ThreadAlphabetBack) as IThreadChannel;
                 var userMessageCount = new Dictionary<ulong, int>();
                 var messages = await thread.GetMessagesAsync(limit: 10000).FlattenAsync();
-                DisplayStuffInDC(GetNextPrint() + " " + $"In diesem Thread wurden bis jetzt **{messages.Count()}** Nachrichten geschrieben", channel);
+                DisplayStuffInDC(
+                    GetNextPrint() + " " +
+                    $"In diesem Thread wurden bis jetzt **{messages.Count()}** Nachrichten geschrieben", channel);
             }
             else if (selectedLine == "ShowEachTotalMessageCount")
             {
-
                 IReadOnlyCollection<IThreadChannel> threads = await channel.GetActiveThreadsAsync();
                 IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == _ThreadAlphabetBack) as IThreadChannel;
                 var userMessageCount = new Dictionary<ulong, int>();
@@ -499,6 +383,7 @@ partial class Program
                         userMessageCount[message.Author.Id] = 1;
                     }
                 }
+
                 StringBuilder result = new StringBuilder();
 
                 foreach (var kvp in userMessageCount.OrderByDescending(x => x.Value))
@@ -506,6 +391,7 @@ partial class Program
                     var user = await _client.GetUserAsync(kvp.Key);
                     result.AppendLine($"{user.Username}: {kvp.Value} messages");
                 }
+
                 // Convert StringBuilder to string
                 string finalResult = result.ToString();
                 DisplayStuffInDC(GetNextPrint() + "\n" + finalResult, channel);
@@ -518,15 +404,20 @@ partial class Program
             {
                 await channel.SendMessageAsync(GetNextPrint() + " " + selectedLine.Trim());
             }
+
             int delay = _random.Next(3600 * 12, 3600 * 24);
             await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken); // Wait for the random delay
         }
     }
+
     private string GetNextPrint()
     {
-        return GetNextCombination(_LastUserMessage == null ? _LastUserMessageFallback.Value : CheckFormat(_LastUserMessage) ? GetCombination(_LastUserMessage) : _LastUserMessageFallback.Value);
+        return GetNextCombination(_LastUserMessage == null ? _LastUserMessageFallback.Value :
+            CheckFormat(_LastUserMessage) ? GetCombination(_LastUserMessage) : _LastUserMessageFallback.Value);
     }
-    private async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage message, ISocketMessageChannel channel)
+
+    private async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage message,
+        ISocketMessageChannel channel)
     {
         if (message.Channel is SocketThreadChannel threadChannel && threadChannel.Id == _ThreadAlphabetBack)
         {
@@ -541,31 +432,31 @@ partial class Program
 
                 // Check if there is a previous message
                 ushort counter = 0;
-                string Comby = _LastUserMessage == null ? _LastUserMessageFallback.Value : GetCombination(_LastUserMessage);
-                for (char first = Comby[0]; first <= 'Z'; first++) for (char second = Comby[1]; second <= 'Z'; second++) for (char third = Comby[2]; third <= 'Z'; third++)
+                string Comby = _LastUserMessage == null
+                    ? _LastUserMessageFallback.Value
+                    : GetCombination(_LastUserMessage);
+                for (char first = Comby[0]; first <= 'Z'; first++)
+                for (char second = Comby[1]; second <= 'Z'; second++)
+                for (char third = Comby[2]; third <= 'Z'; third++)
+                {
+                    counter++;
+                    if (counter == index)
+                    {
+                        if ($"{first}{second}{third}" == GetCombination(targetMessage))
                         {
-                            counter++;
-                            if (counter == index)
-                            {
-                                if ($"{first}{second}{third}" == GetCombination(targetMessage))
-                                {
-                                    RemoveFishReactionAsync(message);
-                                }
-                                else //There was a bug
-                                {
-                                    AddReactionAsync(message);
-                                }
-
-                            }
+                            RemoveFishReactionAsync(message);
                         }
-
-
+                        else //There was a bug
+                        {
+                            AddReactionAsync(message);
+                        }
+                    }
+                }
             }
-
         }
     }
 
-    private static SocketGuildUser GetBotID(SocketMessage message)// is diese methode so schlau?
+    private static SocketGuildUser GetBotID(SocketMessage message) // is diese methode so schlau?
     {
         // Get the guild (server) where the message was sent
         if (message.Channel is SocketGuildChannel guildChannel)
@@ -573,8 +464,10 @@ partial class Program
             // Get the guild user from the message author
             return guildChannel.Guild.CurrentUser as SocketGuildUser;
         }
+
         return null; // Return null if the message is not in a guild
     }
+
     private void PrintMessage(SocketMessage message)
     {
         Console.WriteLine($"Message ID: {message.Id}");
@@ -585,6 +478,7 @@ partial class Program
         Console.WriteLine($"Has Attachments: {message.Attachments.Count > 0}");
         Console.WriteLine("-----");
     }
+
     private async Task GetBotUpToDate()
     {
         byte MessageLimit = 30;
@@ -597,7 +491,18 @@ partial class Program
 
         foreach (IMessage msg in messages.Reverse())
         {
-            if (!CheckFormat(msg)) { AddReactionAsync((SocketMessage)msg); continue; }
+            try
+            {
+                if (!CheckFormat(msg))
+                {
+                    AddReactionAsync((SocketMessage)msg);
+                    continue;
+                }
+            }
+            catch (InvalidCastException)
+            {
+                continue;
+            }
 
             if (Streak.currentIndex == 0)
             {
@@ -612,20 +517,26 @@ partial class Program
             {
                 CurrentStreak.currentCombination = GetCombination(msg);
             }
+
             CurrentStreak.streak++;
             Streak.currentIndex++;
-            if (CurrentStreak.streak > TopStreak.streak) TopStreak = new(CurrentStreak.streak, CurrentStreak.currentCombination);
+            if (CurrentStreak.streak > TopStreak.streak)
+                TopStreak = new(CurrentStreak.streak, CurrentStreak.currentCombination);
         }
-        int getIndexLastTopStreak = messages.ToList().FindIndex(x => CheckFormat(x) && GetCombination(x) == TopStreak.currentCombination);
+
+        int getIndexLastTopStreak = messages.ToList()
+            .FindIndex(x => CheckFormat(x) && GetCombination(x) == TopStreak.currentCombination);
         string s = TopStreak.currentCombination;
         for (int i = 0; getIndexLastTopStreak != i; i++)
         {
             s = GetNextCombination(s);
         }
+
         _LastUserMessageFallback = new(messages.First().Author, s);
         Console.WriteLine(getIndexLastTopStreak);
         Console.WriteLine(s);
     }
+
     private async void GetExactCurrentCombination()
     {
         ITextChannel? channel = _client.GetChannel(_TBoardGeneral) as ITextChannel;
@@ -640,17 +551,22 @@ partial class Program
         {
             throw new Exception("Thread not found.");
         }
+
         var messages = await thread.GetMessagesAsync(limit: 10000).FlattenAsync();
         ushort messageCount = (ushort)messages.Count();
         ushort counter = 0;
         Console.WriteLine(messageCount);
-        for (char first = 'Z'; first >= 'A'; first--) for (char second = 'Z'; second >= 'A'; second--) for (char third = 'Z'; third >= 'A'; third--)
-                {
-                    counter++;
-                    if (counter == messageCount) Console.WriteLine($"{first}{second}{third}");
-                }
+        for (char first = 'Z'; first >= 'A'; first--)
+        for (char second = 'Z'; second >= 'A'; second--)
+        for (char third = 'Z'; third >= 'A'; third--)
+        {
+            counter++;
+            if (counter == messageCount) Console.WriteLine($"{first}{second}{third}");
+        }
+
         ;
     }
+
     private static string GetLastCombination(IMessage message)
     {
         char[] chars = GetCombination(message).ToCharArray();
@@ -664,8 +580,10 @@ partial class Program
             }
             else chars[i] = 'A';
         }
+
         return new string(chars);
     }
+
     private static string GetNextCombination(string message)
     {
         char[] chars = message.ToCharArray();
@@ -679,8 +597,10 @@ partial class Program
             }
             else chars[i] = 'Z';
         }
+
         return new string(chars);
     }
+
     private static bool CheckFormat(IMessage message)
     {
         if (message.Content.Length < 3) return false;
@@ -688,12 +608,12 @@ partial class Program
     }
 
     private static string GetCombination(IMessage message) => message.Content.Substring(0, 3);
+
     private async Task UpdateStatusAsync(CancellationToken cancellationToken)
     {
         byte i = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
-
             var currentHour = DateTime.Now.Hour;
 
             // Set status based on the time of day
@@ -708,6 +628,7 @@ partial class Program
                     await _client.SetStatusAsync(UserStatus.AFK);
                 }
             }
+
             if (currentHour <= 4)
             {
                 if (i == 0) continue;
@@ -722,19 +643,16 @@ partial class Program
             {
                 if (i == 2) continue;
                 i = 2;
-
             }
             else if (currentHour <= 18)
             {
                 if (i == 3) continue;
                 i = 3;
-
             }
             else if (currentHour <= 23)
             {
                 if (i == 4) continue;
                 i = 4;
-
             }
             else
             {
@@ -743,7 +661,9 @@ partial class Program
             }
 
             // Read messages from the text file
-            string[] lines = await File.ReadAllLinesAsync("Activities.txt");
+            if (!File.Exists(_pathActivities))
+                File.Create(_pathActivities);
+            string[] lines = await File.ReadAllLinesAsync(_pathActivities);
             var filteredLines = lines.Where(x => x.Split("@")[0] == $"{i}").ToArray();
 
             if (filteredLines.Length > 0)
@@ -755,18 +675,20 @@ partial class Program
                 // Optionally replace lines with an empty array based on a random condition
                 if (_random.Next(3) != 0)
                 {
-                    lines = [];// or "".Split() if you prefer
+                    lines = []; // or "".Split() if you prefer
                 }
             }
             else
             {
                 lines = [];
             }
+
             if (lines[1] == " Denkt über Tee nach" && TeaThinkCounter != 6)
             {
                 lines[1] = " Denkt über Tee nach";
             }
             else if (TeaThinkCounter == 6) TeaThinkCounter = 0;
+
             if (lines.Length == 3)
             {
                 await _client.SetGameAsync(lines[2].Trim());
@@ -775,16 +697,22 @@ partial class Program
             {
                 await _client.SetCustomStatusAsync(lines[1].Trim());
             }
+
             // Und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte und ich warte
             await Task.Delay(TimeSpan.FromMinutes(60), cancellationToken);
         }
     }
+
     internal class Streak // COMBOOOO!!!
     {
         public static byte currentIndex = 0;
         public byte streak = 0;
         public string currentCombination = "";
-        public Streak() { }
+
+        public Streak()
+        {
+        }
+
         public Streak(byte Streak, string CurrentCombination)
         {
             streak = Streak;
