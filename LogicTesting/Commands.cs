@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Text;
+
 namespace LogicTesting;
+
 partial class Commands
 {
     public class Help : BaseCommand
@@ -74,7 +76,8 @@ partial class Commands
                 help.AppendLine("Available commands:");
                 if (args != null)
                 {
-                    var s = StringFormating.Explode(args);//This is because when "command" does contain "command "command command""
+                    var s = StringFormating
+                        .Explode(args); //This is because when "command" does contain "command "command command""
                     foreach (var VARIABLE in s)
                     {
                         var i = (BaseCommand)CommandManager.GetBaseCommand(VARIABLE);
@@ -147,6 +150,7 @@ partial class Commands
         {
             AddSubCommand(new Guthib());
         }
+
         public override void ExecuteBaseCommand()
         {
             throw new NotImplementedException();
@@ -162,8 +166,8 @@ partial class Commands
             {
                 if (args != null)
                 {
-                    
                 }
+
                 try
                 {
                     Console.WriteLine("Opening GitHub repository...");
@@ -173,7 +177,6 @@ partial class Commands
                 {
                     throw new NotImplementedException();
                 }
-
             }
         }
     }
@@ -204,8 +207,8 @@ partial class Commands
             {
                 if (args == null)
                 {
-                    
                 }
+
                 throw new NotImplementedException();
             }
         }
@@ -240,7 +243,7 @@ partial class Commands
             {
                 if (args != null)
                 {
-                    
+                    throw new Exception("Argument takes 0 Parameters");
                 }
                 //MinecraftServer server = new MinecraftServer();TODO:Uncomment this line
                 //server.Start();
@@ -253,16 +256,12 @@ partial class Commands
 
             public string Description =>
                 "Writes to the console of the server, it returns all content of the console for the next 10 seconds";
-
             public string Usage => $"-{Name} 'parameter'";
+            public bool TakesParameter => true;
             public bool Visibility => false;
 
             public void Execute(string? args)
             {
-                if (args == null)
-                {
-                    
-                }
                 throw new NotImplementedException();
             }
         }
@@ -271,14 +270,15 @@ partial class Commands
         {
             public string Name => "s";
             public string Description => "Minecraft Server spezifische Statistics";
+            public bool TakesParameter => false;
             public string Usage => $"-{Name}";
 
             public void Execute(string? args)
             {
                 if (args != null)
                 {
-                    
                 }
+
                 throw new NotImplementedException();
             }
         }
@@ -288,11 +288,11 @@ partial class Commands
             public string Name => "h";
             public string Description => "show the hall of fame";
             public string Usage => $"-{Name}";
+
             public void Execute(string? args)
             {
                 if (args != null)
                 {
-                    
                 }
             }
         }

@@ -9,6 +9,7 @@ public static class CommandManager
     {
         RegisterAllCommands();
     }
+
     private static void RegisterAllCommands() //TODO: move this stuff to the right place
     {
         // Get all types in the assembly that implement ICommand
@@ -33,8 +34,8 @@ public static class CommandManager
 
     public static void ExecuteCommand(UserCommand message)
     {
-        message._Command?.Execute(message._arguments);
-        if (message._Command == null)//If I got that right, than the upper part will not be processed when command does not exist
+        message.Command?.Execute(message.Arguments);
+        if (message.Command == null) //If I got that right, than the upper part will not be processed when command does not exist
         {
             Console.WriteLine($"Command not found");
         }
@@ -46,16 +47,18 @@ public static class CommandManager
             cmd.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase));
     }
 }
+
 public interface ICommand
 {
     string Name { get; }
     string Description { get; }
     string Usage { get; }
+
     void Execute(string? command);
     //void Execute(Command command);
 }
 
-public abstract class BaseCommand: ICommand
+public abstract class BaseCommand : ICommand
 {
     public abstract string Name { get; }
     public abstract string Description { get; }
@@ -67,7 +70,7 @@ public abstract class BaseCommand: ICommand
 
     public void AddSubCommand(ICommand command)
     {
-        if(GetSubCommand(command.Name) != null)throw new ("Subcommand with same name already exists");
+        if (GetSubCommand(command.Name) != null) throw new("Subcommand with same name already exists");
         SubCommands.Add(command);
     }
 
@@ -77,19 +80,23 @@ public abstract class BaseCommand: ICommand
     }
 
     public abstract void ExecuteBaseCommand();
-    public void Execute(UserCommand.Argument[] userCommand)
+
+    public void Execute(UserCommand.CArgument[] userCommand)
     {
         if (userCommand.Length == 0)
         {
             ExecuteBaseCommand();
             return;
         }
-        
+
         foreach (var VARIABLE in userCommand)
         {
-            VARIABLE.command.Execute(VARIABLE.argument);
+            VARIABLE.Command.Execute(VARIABLE.Argument);
         }
         //,   Console.WriteLine($"Executing {Name} with args: {string.Join(", ", args)}");
     }
-    public void Execute(string command){}
+
+    public void Execute(string command)
+    {
+    }
 }

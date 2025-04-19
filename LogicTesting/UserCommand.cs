@@ -1,82 +1,115 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace LogicTesting;
 
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class UserCommand
 {
-    public class Argument
+    public class CArgument
     {
-        public ICommand command { get; private set; }
-        public string? argument {get; private set;}
+        public ICommand Command { get; private set; }
+        public string? Argument { get; private set; }
 
-        public Argument(ICommand command)
+        public CArgument(ICommand command)
         {
-            this.command = command;
+            this.Command = command;
         }
-        public Argument(ICommand command, string argument)
+
+        public CArgument(ICommand command, string argument)
         {
-            this.command = command;
-            this.argument = argument;
+            this.Command = command;
+            this.Argument = argument;
         }
     }
 
-    public BaseCommand _Command { get; private set; }
+    public BaseCommand Command { get; private set; }
 
-    public Argument[] _arguments { get; private set; }
-    public object? dasDing { get; private set; }
+    public CArgument[]? Arguments { get; private set; }
+    public object? TheThing { get; private set; }
 
     public UserCommand(string command) : this(command, null)
     {
     }
-
-    public UserCommand(string command, object? dasDing)
+    public UserCommand(string command, object? theThing)
     {
-        string input = command;
-        if (string.IsNullOrWhiteSpace(input)) throw new Exception("Not a valid Command"); //TODO: schaun ob das return probleme macht
-        if(input.Length == 1) throw new Exception("Not a valid Command");
-        if (input[0] != '!') throw new Exception("Not a valid Command");
-        else input = input.TrimStart('!');
-        
+        if (string.IsNullOrWhiteSpace(command))
+            throw new Exception("Not a valid Command");
+        if (command[0] != '!') throw new Exception("Not a valid Command");
+        else command = command.TrimStart('!');
+        if (command.Length == 0) throw new Exception("Not a valid Command");
 
-        string[] parts = StringFormating.SmalBoom(input); //TODO: das explode sorgt auch dafür, dass der prefix "-" nicht mehr als ein einzelnes element angesehen wird
-        _Command = (BaseCommand)CommandManager.GetBaseCommand(parts[0]);
-        var args = parts.Skip(1).ToArray();
-        List<Argument> arguments = new List<Argument>();
         
-        for (int i = 0; i < args.Length; i++)
+        string[] parts = StringFormating.SmalBoom(command); //TODO: das explode sorgt auch dafür, dass der prefix "-" nicht mehr als ein einzelnes element angesehen wird
+        
+        this.Command = (BaseCommand)CommandManager.GetBaseCommand(parts[0]);
+        this.Arguments = ParseAllArguments(parts.Skip(1).ToArray());
+        this.TheThing = theThing;
+    }
+    public UserCommand(BaseCommand command, string? arguments) : this(command, arguments, null)
+    {
+        //Not sure why I did this cuz I will prob, never need this. (:
+    }
+    public UserCommand(BaseCommand command, string? arguments, object? theThing)
+    {
+        this.Command = command;
+        this.Arguments = ParseAllArguments(StringFormating.SmalBoom(arguments));
+        this.TheThing = theThing;
+    }
+
+    CArgument[]? ParseAllArguments(string[] input)
+    {
+        List<CArgument> arguments = new List<CArgument>();
+        for (int i = 0; i < input.Length; i++)
         {
-            var arg = args[i];//TODO: dat zeuch mal verschieben un duie Argument init
+            var arg = input[i]; //TODO: dat zeuch mal verschieben un duie Argument init
             if (arg.StartsWith("-"))
             {
+                
                 arg = arg.Substring(1);
                 //Sumcommand handeling
-                
-                ICommand subCommand = _Command.GetSubCommand(arg);
+
+                ICommand subCommand = Command.GetSubCommand(arg);
                 if (subCommand != null)
                 {
-                    i++;
-                    if(args[i][0]!='-'){//Dies müsste den index increasen und gleivhzeitig den nächten index verwenden
-                    Argument argument = new(subCommand, StringFormating.RemoveQuotes(args[i]));
-                    arguments.Add(argument);
+                    if (i + 1 < input.Length && input[i + 1][0] != '-')
+                    {
+                        i++; //So that the parameter gets ignored
+                        CArgument cArgument = new(subCommand, StringFormating.RemoveQuotes(input[i]));
+                        arguments.Add(cArgument);
                     }
                     else
                     {
-                        Argument argument = new(subCommand);
-                        arguments.Add(argument);
-                        continue;
-                        //Assumning that this is a no parameter argument
+                        CArgument cArgument = new(subCommand);
+                        arguments.Add(cArgument);
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"{_Command.Name} doesnt have an argument called '{arg}'");
+                    throw new Exception($"{Command.Name} doesnt have an argument called '{arg}'");
                 }
             }
             else
             {
-                throw new Exception("unknown something");
+                throw new Exception($"{arg} << unknown something");
             }
         }
-        _arguments = arguments.ToArray();
-        
-        this.dasDing = dasDing;
+        return arguments.ToArray();
+    }
+    public static bool TryParse(string input, out UserCommand? command,out string? exeption)
+    {
+        try
+        {
+            // Attempt to parse the string into a UserCommand object.
+            command = new UserCommand(input);
+            exeption = null;
+            return true;
+        }
+        catch (Exception e)
+        {
+            // If parsing fails, set the output parameter to its default value and return false.
+            command = null;
+            exeption = e.Message;
+            return false;
+        }
     }
 }
