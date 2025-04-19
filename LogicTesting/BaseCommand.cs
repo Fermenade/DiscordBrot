@@ -52,7 +52,13 @@ public interface ICommand
 {
     string Name { get; }
     string Description { get; }
-    string Usage { get; }
+    string Usage => $"-{Name}" + (TakesParameter == true? $" {Parameter}":TakesParameter==null?$" ({Parameter})":"");
+    /// <summary>
+    /// Custom Parameter Name for the command.
+    /// </summary>
+    string Parameter => "parameter(s)";
+    bool? TakesParameter { get; }
+    bool Visibility => true;
 
     void Execute(string? command);
     //void Execute(Command command);
@@ -62,8 +68,9 @@ public abstract class BaseCommand : ICommand
 {
     public abstract string Name { get; }
     public abstract string Description { get; }
-
-    public abstract string Usage { get; }
+    public string Usage => $"!{Name}";
+    public bool Visibility => true;
+    public bool? TakesParameter => null;//TODO: es kann sein dass wenn diese wert nicht false ist, dann macht es etwas falsches um Usage anzeige.
 
     //public abstract void Execute(string[] args);
     public List<ICommand> SubCommands { get; } = new List<ICommand>();

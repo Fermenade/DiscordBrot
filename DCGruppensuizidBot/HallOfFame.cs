@@ -10,7 +10,7 @@ public class HallOfFame
     /*TODO: fix this error
      Unhandled exception. Newtonsoft.Json.JsonReaderException: Additional text encountered after finished reading JSON content: d. Path '', line 1, position 423.
    at Newtonsoft.Json.JsonTextReader.Read()
-   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.Deserialize(JsonReader reader, Type objectType, Boolean checkAdditionalContent)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.Deserialize(JsonReader reader, Type objectType, boolean checkAdditionalContent)
    at Newtonsoft.Json.JsonSerializer.DeserializeInternal(JsonReader reader, Type objectType)
    at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
    at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
@@ -18,7 +18,7 @@ public class HallOfFame
    at DGruppensuizidBot.HallOfFame.LoadEntries() in /mnt/0_WorkWindows/Users/dumblecore/source/repos/GruppensuizidDC/DCGruppensuizidBot/HallOfFame.cs:line 58
    at DGruppensuizidBot.HallOfFame..ctor(TimeSpan time, String[] description) in /mnt/0_WorkWindows/Users/dumblecore/source/repos/GruppensuizidDC/DCGruppensuizidBot/HallOfFame.cs:line 17
    at Program.HandleRecivedServerData(Object sender, DataReceivedEventArgs e) in /mnt/0_WorkWindows/Users/dumblecore/source/repos/GruppensuizidDC/DCGruppensuizidBot/Program.cs:line 494
-   at System.Diagnostics.AsyncStreamReader.FlushMessageQueue(Boolean rethrowInNewThread)
+   at System.Diagnostics.AsyncStreamReader.FlushMessageQueue(boolean rethrowInNewThread)
 --- End of stack trace from previous location ---
    at System.Threading.ThreadPoolWorkQueue.Dispatch()
    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()

@@ -61,7 +61,7 @@ public class UserCommand
         List<CArgument> arguments = new List<CArgument>();
         for (int i = 0; i < input.Length; i++)
         {
-            var arg = input[i]; //TODO: dat zeuch mal verschieben un duie Argument init
+            string arg = StringFormating.RemoveQuotes(input[i]); //TODO: dat zeuch mal verschieben un duie Argument init
             if (arg.StartsWith("-"))
             {
                 
@@ -73,19 +73,23 @@ public class UserCommand
                 {
                     if (i + 1 < input.Length && input[i + 1][0] != '-')
                     {
+                        if (subCommand.TakesParameter == false)
+                            throw new($"{subCommand.Name} does not take parameters");
                         i++; //So that the parameter gets ignored
                         CArgument cArgument = new(subCommand, StringFormating.RemoveQuotes(input[i]));
                         arguments.Add(cArgument);
                     }
                     else
                     {
+                        if(subCommand.TakesParameter == true)
+                            throw new($"{subCommand.Name} takes parameters, but 0 are given");
                         CArgument cArgument = new(subCommand);
                         arguments.Add(cArgument);
                     }
                 }
                 else
                 {
-                    throw new Exception($"{Command.Name} doesnt have an argument called '{arg}'");
+                    throw new Exception($"{Command.Name} doesnt have an argument called '-{arg}'");
                 }
             }
             else

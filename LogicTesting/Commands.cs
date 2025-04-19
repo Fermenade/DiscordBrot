@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -9,7 +10,6 @@ partial class Commands
     {
         public override string Name => "help";
         public override string Description => "Shows help";
-        public override string Usage => $"!{Name}";
 
         public Help()
         {
@@ -21,7 +21,8 @@ partial class Commands
         {
             public string Name => "s";
             public string Description => "Searches for commands matching arguments";
-            public string Usage => $"-{Name} <command>";
+            public bool? TakesParameter => true;
+            public string Parameter => "command(s)";
 
             public void Execute(string? args)
             {
@@ -35,7 +36,7 @@ partial class Commands
                 foreach (string command in s)
                 {
                     BaseCommand? baseCommand = (BaseCommand?)CommandManager.GetBaseCommand(command);
-                    if (baseCommand == null)
+                    if (baseCommand == null||baseCommand.Visibility == false)
                     {
                         Console.WriteLine($"{command} unknown command");
                         continue;
@@ -63,32 +64,23 @@ partial class Commands
             }
         }
 
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         class All : ICommand
         {
             public string Name => "a";
             public string Description => "Gets all commands matching arguments";
-            public string Usage => $"-{Name}";
+            public bool? TakesParameter => null;
+            public string Parameter => "command(s)";
 
             public void Execute(string? args)
             {
                 StringBuilder help = new StringBuilder();
-                help.AppendLine("'!command' -argument [parameters]");
+                help.AppendLine("'!command' -argument [parameter]");
                 help.AppendLine("Available commands:");
                 if (args != null)
                 {
-                    var s = StringFormating
-                        .Explode(args); //This is because when "command" does contain "command "command command""
-                    foreach (var VARIABLE in s)
-                    {
-                        var i = (BaseCommand)CommandManager.GetBaseCommand(VARIABLE);
-                        if (i == null)
-                        {
-                            Console.WriteLine($"{VARIABLE} unknown command");
-                            continue;
-                        }
-
-                        ShowAllHelp(help, (BaseCommand)CommandManager.GetBaseCommand(VARIABLE));
-                    }
+                    var s = StringFormating.Explode(args); //This is because when "command" does contain "command "command command""
+                    ShowHelp(help, s);
                 }
                 else
                 {
@@ -98,6 +90,20 @@ partial class Commands
 
                 Console.WriteLine(help.ToString());
             }
+        static StringBuilder ShowHelp(StringBuilder help,string[] command)
+        {
+            foreach (var VARIABLE in command)
+            {
+                var i = (BaseCommand)CommandManager.GetBaseCommand(VARIABLE);
+                if (i == null)
+                {
+                    help.AppendLine($"{VARIABLE} unknown command");
+                    continue;
+                }
+                ShowAllHelp(help, i);
+            }
+            return help;
+        }
 
             /// <summary>
             /// Shows entire command list
@@ -113,10 +119,14 @@ partial class Commands
 
             static void ShowAllHelp(StringBuilder help, BaseCommand command)
             {
-                help.AppendLine($"{command.Name} : {command.Description}, usage: {command.Usage}");
+                if (!command.Visibility) return;
+                help.AppendLine($"{command.Name} : {command.Description}, usage: {((ICommand)command).Usage}");
                 foreach (ICommand VARIABLE in command.SubCommands)
                 {
-                    help.AppendLine($"\t{VARIABLE.Name} : {VARIABLE.Description}, usage: {VARIABLE.Usage}");
+                    if (VARIABLE.Visibility)
+                    {
+                        help.AppendLine($"\t{VARIABLE.Name} : {VARIABLE.Description}, usage: {VARIABLE.Usage}");
+                    }
                 }
             }
         }
@@ -133,7 +143,10 @@ partial class Commands
             help.AppendLine("Available commands:");
             foreach (var command in CommandManager._commands)
             {
-                help.AppendLine($"{command.Name}");
+                if (command.Visibility)
+                {
+                    help.AppendLine($"{command.Name}");
+                }
             }
 
             return help.ToString();
@@ -144,7 +157,6 @@ partial class Commands
     {
         public override string Name => "bot";
         public override string Description => "Bot related commands";
-        public override string Usage => $"!{Name}";
 
         public General()
         {
@@ -160,14 +172,10 @@ partial class Commands
         {
             public string Name => "guthib";
             public string Description => "Link to GitHub repository";
-            public string Usage => $"-{Name}";
+            public bool? TakesParameter => false;
 
             public void Execute(string? args)
             {
-                if (args != null)
-                {
-                }
-
                 try
                 {
                     Console.WriteLine("Opening GitHub repository...");
@@ -185,7 +193,6 @@ partial class Commands
     {
         public override string Name => "alphabet";
         public override string Description => "Alphabet";
-        public override string Usage => $"!{Name}";
 
         public Alphabet()
         {
@@ -201,7 +208,8 @@ partial class Commands
         {
             public string Name => "s";
             public string Description => "Stats of alphabet";
-            public string Usage => $"-{Name} <Username>";
+            public bool? TakesParameter => null;
+            public string Parameter => "username(s)";
 
             public void Execute(string? args)
             {
@@ -218,13 +226,13 @@ partial class Commands
     {
         public override string Name => "server";
         public override string Description => "Minecraft Server spezifische Commands";
-        public override string Usage => $"!{Name}";
 
         public Server()
         {
             // Register sub-commands
             AddSubCommand(new Start());
             AddSubCommand(new Stats());
+            AddSubCommand(new Console());
             AddSubCommand(new HallofFame());
         }
 
@@ -237,7 +245,7 @@ partial class Commands
         {
             public string Name => "p";
             public string Description => "Power server";
-            public string Usage => $"-{Name}";
+            public bool? TakesParameter =>  false;
 
             public void Execute(string? args)
             {
@@ -256,8 +264,7 @@ partial class Commands
 
             public string Description =>
                 "Writes to the console of the server, it returns all content of the console for the next 10 seconds";
-            public string Usage => $"-{Name} 'parameter'";
-            public bool TakesParameter => true;
+            public bool? TakesParameter => true;
             public bool Visibility => false;
 
             public void Execute(string? args)
@@ -270,8 +277,7 @@ partial class Commands
         {
             public string Name => "s";
             public string Description => "Minecraft Server spezifische Statistics";
-            public bool TakesParameter => false;
-            public string Usage => $"-{Name}";
+            public bool? TakesParameter => false;
 
             public void Execute(string? args)
             {
@@ -287,13 +293,10 @@ partial class Commands
         {
             public string Name => "h";
             public string Description => "show the hall of fame";
-            public string Usage => $"-{Name}";
-
+            public bool? TakesParameter => false;
             public void Execute(string? args)
             {
-                if (args != null)
-                {
-                }
+
             }
         }
     }
