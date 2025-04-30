@@ -249,10 +249,6 @@ partial class Commands
 
             public void Execute(string? args)
             {
-                if (args != null)
-                {
-                    throw new Exception("Argument takes 0 Parameters");
-                }
                 //MinecraftServer server = new MinecraftServer();TODO:Uncomment this line
                 //server.Start();
             }

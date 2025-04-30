@@ -26,7 +26,7 @@ Aborted (core dumped)
      */
     private static string FilePath = $"{Serverstuff.PrefixPath}scoreboard.json";
     private List<ScoreEntry> entries;
-
+//Warum ist dieser parameter optional??
     public HallOfFame([Optional] TimeSpan time, string[]? description = null)
     {
         entries = LoadEntries();
