@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net9.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <PlatformTarget>AnyCPU</PlatformTarget>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <Compile Remove="LogicTesting.cs"/>
-    </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="LogicTesting.cs" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <None Include="..\.gitignore" Link=".gitignore"/>
-    </ItemGroup>
+  <ItemGroup>
+    <None Include="..\.gitignore" Link=".gitignore" />
+  </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Discord.Net.Core" Version="3.17.1"/>
