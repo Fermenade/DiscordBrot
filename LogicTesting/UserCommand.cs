@@ -41,7 +41,7 @@ public class UserCommand
         
         string[] parts = StringFormating.SmalBoom(command); //TODO: das explode sorgt auch dafür, dass der prefix "-" nicht mehr als ein einzelnes element angesehen wird
         
-        this.Command = (BaseCommand)CommandManager.GetBaseCommand(parts[0]);
+        this.Command = (BaseCommand)CommandManager.GetBaseCommand(parts[0])??throw new Exception("Not a valid Command");
         this.Arguments = ParseAllArguments(parts.Skip(1).ToArray());
         this.TheThing = theThing;
     }

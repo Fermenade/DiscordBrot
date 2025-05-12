@@ -11,12 +11,6 @@ partial class Commands
         public override string Name => "help";
         public override string Description => "Shows help";
 
-        public Help()
-        {
-            AddSubCommand(new Search());
-            AddSubCommand(new All());
-        }
-
         class Search : ICommand
         {
             public string Name => "s";
@@ -158,11 +152,6 @@ partial class Commands
         public override string Name => "bot";
         public override string Description => "Bot related commands";
 
-        public General()
-        {
-            AddSubCommand(new Guthib());
-        }
-
         public override void ExecuteBaseCommand()
         {
             throw new NotImplementedException();
@@ -194,11 +183,6 @@ partial class Commands
         public override string Name => "alphabet";
         public override string Description => "Alphabet";
 
-        public Alphabet()
-        {
-            AddSubCommand(new Stats());
-        }
-
         public override void ExecuteBaseCommand()
         {
             throw new NotImplementedException();
@@ -226,15 +210,6 @@ partial class Commands
     {
         public override string Name => "server";
         public override string Description => "Minecraft Server spezifische Commands";
-
-        public Server()
-        {
-            // Register sub-commands
-            AddSubCommand(new Start());
-            AddSubCommand(new Stats());
-            AddSubCommand(new Console());
-            AddSubCommand(new HallofFame());
-        }
 
         public override void ExecuteBaseCommand()
         {

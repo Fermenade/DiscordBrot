@@ -23,6 +23,7 @@ namespace LogicTesting
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
+                    Console.WriteLine(e);
                 }
             }
         }

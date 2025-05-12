@@ -7,10 +7,10 @@ public static class CommandManager
 {
     static CommandManager()
     {
-        RegisterAllCommands();
+        RegisterAllCommandsAndSubcommands();
     }
 
-    private static void RegisterAllCommands() //TODO: move this stuff to the right place
+    private static void RegisterAllCommandsAndSubcommands() //TODO: move this stuff to the right place
     {
         // Get all types in the assembly that implement ICommand
         IEnumerable<Type> commandTypes = Assembly.GetExecutingAssembly()
@@ -22,6 +22,8 @@ public static class CommandManager
             // Create an instance of the command and register it
             BaseCommand commandInstance = (BaseCommand)Activator.CreateInstance(commandType);
             CommandManager.RegisterCommand(commandInstance);
+            
+            RegisterAllSubcommands(commandInstance);
         }
     }
 
@@ -31,14 +33,34 @@ public static class CommandManager
     {
         _commands.Add(command);
     }
+/// <summary>
+/// Registers all Subcommands of a given BaseCommand
+/// </summary>
+/// <param name="baseCommand"></param>
+    private static void RegisterAllSubcommands(BaseCommand baseCommand) //TODO: check if this works
+    {
+        //Get all Subcommands in the assembly that implement ICommand
+        IEnumerable<Type> subCommands = baseCommand.GetType().GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(t =>
+                typeof(ICommand).IsAssignableFrom(t) && !t.IsAbstract && 
+                !typeof(BaseCommand).IsAssignableFrom(t)
+            );
+        
+        foreach (Type commandType in subCommands)
+        {
+            // Create an instance of the command and register it
+            ICommand commandInstance = (ICommand)Activator.CreateInstance(commandType);
+            baseCommand.AddSubCommand(commandInstance);
+        }
+    } 
 
     public static void ExecuteCommand(UserCommand message)
     {
         message.Command?.Execute(message.Arguments);
-        if (message.Command == null) //If I got that right, than the upper part will not be processed when command does not exist
-        {
-            Console.WriteLine($"Command not found");
-        }
+        // if (message.Command == null) //If I got that right, than the upper part will not be processed when command does not exist
+        // {
+        //     Console.WriteLine($"Command not found");
+        // }
     }
 
     public static ICommand? GetBaseCommand(string commandName)
@@ -74,12 +96,13 @@ public abstract class BaseCommand : ICommand
 
     //public abstract void Execute(string[] args);
     public List<ICommand> SubCommands { get; } = new List<ICommand>();
-
+    
     public void AddSubCommand(ICommand command)
     {
         if (GetSubCommand(command.Name) != null) throw new("Subcommand with same name already exists");
         SubCommands.Add(command);
     }
+
 
     public ICommand? GetSubCommand(string name)
     {

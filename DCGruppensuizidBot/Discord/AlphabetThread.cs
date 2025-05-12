@@ -18,6 +18,7 @@ public class AlphabetThread :Message
     private Task ClientOnMessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2, ISocketMessageChannel arg3)
     {
         throw new NotImplementedException();
+        //TODO: wenn eine nachricht korrigiert wird, und im selben moment eine neue nachricht gesendet wird, dann wird die überprüfung abgebrochen für die andere.
     }
 
     private KeyValuePair<IUser, string> _lastUserMessageFallback;
