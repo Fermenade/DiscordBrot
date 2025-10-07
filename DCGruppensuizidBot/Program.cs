@@ -12,7 +12,6 @@ public class Program
         {
             PanicMode(ex);
         }
-
         void PanicMode(Exception ex)
         {
             //Save all info to files

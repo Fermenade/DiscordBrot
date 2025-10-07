@@ -6,7 +6,7 @@ using DGruppensuizidBot.Discord;
 using Discord.WebSocket;
 using Timer = System.Timers.Timer;
 
-namespace DGruppensuizidBot;
+namespace DGruppensuizidBot.BMC_Server;
 
 public class CoreMCServer 
 {

@@ -93,7 +93,7 @@ partial class Commands
         {
             foreach (var VARIABLE in command)
             {
-                var i = (BaseCommand)CommandManager.GetBaseCommand(VARIABLE);
+                BaseCommand? i = (BaseCommand)CommandManager.GetBaseCommand(VARIABLE);
                 if (i == null)
                 {
                     help.AppendLine($"{VARIABLE} unknown command");
@@ -140,7 +140,7 @@ partial class Commands
             StringBuilder help = new StringBuilder();
             help.AppendLine("'!command' -arguments");
             help.AppendLine("Available commands:");
-            foreach (var command in CommandManager._commands)
+            foreach (ICommand command in CommandManager._commands)
             {
                 if (command.Visibility)
                 {

@@ -1,4 +1,4 @@
-namespace DGruppensuizidBot;
+namespace DGruppensuizidBot.BMC_Server;
 
 public class PlayerManager
 {

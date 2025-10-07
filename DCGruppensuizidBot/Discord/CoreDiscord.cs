@@ -1,19 +1,25 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using DGruppensuizidBot.commands;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 
 namespace DGruppensuizidBot.Discord;
 
-class CoreDiscord
+ class CoreDiscord
 {
     private string _token {get; set; }
     public Random _random = new();
     public static DiscordSocketClient _client;
+    public static BaseDiscordClient _Base;
+    public static DiscordShardedClient // TODO: Look at me!!!
+    private TaskCompletionSource<bool> _readyCompletionSource = new();
     public CoreDiscord(string token)
     {
+        _Base.
         _token = token;
     }
     DiscordSocketConfig config = new DiscordSocketConfig
@@ -29,13 +35,14 @@ class CoreDiscord
         string token = File.ReadAllText(_token); // Sike, ihr kriegt keinen Token
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
-        _client.Ready += OnReady; //TODO: check if line is nessesary
-        
+        _client.Ready += () => {
+            _readyCompletionSource.SetResult(true); // Signal that the bot is ready
+            return Task.CompletedTask; // He is Ready!!!
+        };
         await _readyCompletionSource.Task;
 
-        await GetBotUpToDate(); //Get Bot up to date - thats what the method says
         _client.MessageUpdated += MessageUpdated; // Update von Message
-        _client.MessageDeleted += MessageDeleted; //Detelte
+        _client.MessageDeleted +=; //Detelte
         _client.MessageReceived += MessageReceived; // Wenn neue Message
         
         //_ = SendRandomMessagesAsync(_cancellationTokenSource.Token); //Send Messages - cancelation is irgendwie cool.
@@ -52,52 +59,10 @@ class CoreDiscord
         Console.WriteLine(arg);
         return Task.CompletedTask; //She is readyy!!
     }
-    private bool _isProcessingQueue; // damit wenn noch in arbeit weiter gearbeitet wird
-    private ConcurrentQueue<Cacheable<IMessage, ulong>> _messageQueue = new(); //Interfaces :)
 
-    private async Task MessageDeleted(Cacheable<IMessage, ulong> cachedMessage, Cacheable<IMessageChannel, ulong> channel)
-    {
-        //if (channel.Id == _ThreadAlphabetBack)
-        {
-            // Enqueue the message
-            _messageQueue.Enqueue(cachedMessage); //enqhene
 
-            // Start processing if not already processing
-            if (!_isProcessingQueue) //wenn nicht dann doch
-            {
-                _isProcessingQueue = true;
-                await ProcessMessageQueue(channel); //asnyc
-                _isProcessingQueue = false;
-            }
-        }
-    }
 
-    private async Task ProcessMessageQueue(Cacheable<IMessageChannel, ulong> channel)
-    {
-        while (_messageQueue.TryDequeue(out var cachedMessage))
-        {
-            if (channel.Id == Serverstuff._ThreadAlphabetBack)
-            {
-                if (Deletedmessage != null)
-                {
-                    // Check if the message is cached
-                    // why was  thjis even nessesary
-                    if (cachedMessage.Id != Deletedmessage.Id)
-                    {
-                        GetBotUpToDate();
-                        _LastUserMessage = null;
-                    }
-                }
-                else
-                {
-                    GetBotUpToDate();
-                    //Spongebob
-                    _LastUserMessage = null;
-                }
-            }
-            await Task.Delay(0); //await zerrrrrooooooo!
-        }
-    }
+
 
     private async Task MessageReceived(SocketMessage message)
     {

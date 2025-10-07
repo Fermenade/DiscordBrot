@@ -1,33 +1,45 @@
-using System.Text;
-using System.Text.Json;
+using DGruppensuizidBot.Discord;
 using Discord;
 using Discord.WebSocket;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using System;
+using System.Collections.Concurrent;
+using System.Reflection.Metadata.Ecma335;
+using System.Text;
+using System.Text.Json;
 
-namespace DGruppensuizidBot.Discord;
+namespace DGruppensuizidBot.AlphabetThread;
 
-public class AlphabetThread :Message
+public class AlphabetThread : IServerMessageChannel
 {
+    public IMessageChannel Channel { get; private set; }
+    public ulong Id => Channel.Id;
     private SocketUserMessage _LastUserMessage;
 
-    public AlphabetThread()
-    {
-        _client.MessageReceived += ClientOnMessageReceived;
-        _client.MessageUpdated += ClientOnMessageUpdated;
-    }
-
-    private Task ClientOnMessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2, ISocketMessageChannel arg3)
-    {
-        throw new NotImplementedException();
-    }
-
     private KeyValuePair<IUser, string> _lastUserMessageFallback;
+
+    private MessageCache messageCache = new MessageCache();
+
     private SocketMessage Deletedmessage;
-    private Task ClientOnMessageReceived(SocketMessage message)
+
+    private Logger logger = new LoggerConfiguration()
+        .WriteTo.File("Alphabet.log",rollingInterval: RollingInterval.Day)
+        .WriteTo.Console()
+        .CreateLogger();
+
+
+    public async Task MessageReceived(SocketMessage sMessage)
     {
+        AlphabetMessage message = new(sMessage);
+        
+
         if (message.Channel is SocketThreadChannel threadChannel && threadChannel.Id == Serverstuff._ThreadAlphabetBack)
         {//TODO: Weiterleitungen werden nicht zugelassen und die Weiterleitung wird gelöscht.
             if (CheckFormat(message))
             {
+
                 if (_LastUserMessage != null)
                 {
                     if (message.Author != _LastUserMessage.Author)
@@ -81,6 +93,72 @@ public class AlphabetThread :Message
             }
         }
     }
+    public async Task ProcessMessageQueue(Cacheable<IMessageChannel, ulong> channel) 
+    {
+        while (_messageQueue.TryDequeue(out var cachedMessage))
+        {
+            if (channel.Id == Serverstuff._ThreadAlphabetBack)
+            {
+                if (Deletedmessage != null)
+                {
+                    // Check if the message is cached
+                    // why was  thjis even nessesary
+                    if (cachedMessage.Id != Deletedmessage.Id)
+                    {
+                        GetBotUpToDate();
+                        _LastUserMessage = null;
+                    }
+                }
+                else
+                {
+                    GetBotUpToDate();
+                    //Spongebob
+                    _LastUserMessage = null;
+                }
+            }
+            await Task.Delay(0); //await zerrrrrooooooo!
+        }
+    }
+
+    async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage sMessage, ISocketMessageChannel channel)
+    {
+        AlphabetMessage message = new(sMessage);
+        if (message.Channel is SocketThreadChannel threadChannel && threadChannel.Id == Serverstuff._ThreadAlphabetBack)
+        {
+            await GetBotUpToDate();
+            IEnumerable<IMessage> messages = await channel.GetMessagesAsync(30).FlattenAsync();
+            IMessage? targetMessage = messages.FirstOrDefault(m => m.Id == message.Id);
+            if (targetMessage != null)
+            {
+                // Get the index of the target message
+                byte index = (byte)(messages.ToList().IndexOf(targetMessage) + 1);
+
+
+                // Check if there is a previous message
+                ushort counter = 0;
+                string Comby = _LastUserMessage == null
+                    ? _LastUserMessageFallback.Value
+                    : GetCombination(_LastUserMessage);
+                for (char first = Comby[0]; first <= 'Z'; first++)
+                for (char second = Comby[1]; second <= 'Z'; second++)
+                for (char third = Comby[2]; third <= 'Z'; third++)
+                {
+                    counter++;
+                    if (counter == index)
+                    {
+                        if ($"{first}{second}{third}" == GetCombination(targetMessage))
+                        {
+                            RemoveFishReactionAsync(message);
+                        }
+                        else //There was a bug
+                        {
+                            AddFishReactionAsync(message);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private async void DeleteMessage(SocketMessage message)
     {
@@ -89,7 +167,6 @@ public class AlphabetThread :Message
     }
     private void AddFishReactionAsync(SocketMessage message)
     {
-        
         // name überschneidet sich mit methode die mit punkt aufgerufen wird (ja hab den begriff vergessen)
         message.AddReactionAsync(new Emoji("🐟"));
         AddUserPoint(message.Author);
@@ -122,7 +199,7 @@ public class AlphabetThread :Message
 
     private void PrintAlphabetStats(Dictionary<ulong, object[]> map, ISocketMessageChannel channel)
     {
-        var embed = new EmbedBuilder
+        EmbedBuilder embed = new EmbedBuilder
         {
             Title = "Leute die das Alphabet ned können",
             Color = Color.Blue
@@ -155,15 +232,9 @@ public class AlphabetThread :Message
         return channel != null;
     }
 
-    private bool CheckIfVoiceChannelExists(IAudioChannel? channel)
-    {
-        return channel != null;
-    }
-
     private async void RemoveFishReactionAsync(SocketMessage message)
     {
-        await message.RemoveReactionAsync(new Emoji("🐟"),
-            GetBotID(message)); // soll der fehler wieder abgezogen werden, wenn der fehler ausgebessert wird?
+        await message.RemoveReactionAsync(new Emoji("🐟"), CoreDiscord.GetBotID(message)); // soll der fehler wieder abgezogen werden, wenn der fehler ausgebessert wird?
     }
 
     private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
@@ -199,7 +270,7 @@ public class AlphabetThread :Message
                 IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == Serverstuff._ThreadAlphabetBack) as IThreadChannel;
                 var userMessageCount = new Dictionary<ulong, int>();
                 var messages = await thread.GetMessagesAsync(limit: 10000).FlattenAsync();
-                foreach (var message in messages)
+                foreach (IMessage? message in messages)
                 {
                     if (userMessageCount.ContainsKey(message.Author.Id))
                     {
@@ -223,10 +294,6 @@ public class AlphabetThread :Message
                 string finalResult = result.ToString();
                 DisplayStuffInDC(GetNextPrint() + "\n" + finalResult, channel);
             }
-            else if (selectedLine == "SendOrgans")
-            {
-                await channel.SendFileAsync("Program.cs", GetNextPrint() + " Hier ist mein Sourcecode:");
-            }
             else
             {
                 await channel.SendMessageAsync(GetNextPrint() + " " + selectedLine.Trim());
@@ -236,133 +303,32 @@ public class AlphabetThread :Message
             await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken); // Wait for the random delay
         }
     }
-
+    //if (channel.Id == Serverstuff._ThreadAlphabetBack)
+    //{
+    //    if (Deletedmessage != null)
+    //    {
+    //        // Check if the message is cached
+    //        // why was  thjis even nessesary
+    //        if (cachedMessage.Id != Deletedmessage.Id)
+    //        {
+    //            GetBotUpToDate();
+    //            _LastUserMessage = null;
+    //        }
+    //    }
+    //    else
+    //    {
+    //        GetBotUpToDate();
+    //        //Spongebob
+    //        _LastUserMessage = null;
+    //    }
+    //}
     private string GetNextPrint()
     {
         return GetNextCombination(_LastUserMessage == null ? _lastUserMessageFallback.Value :
             CheckFormat(_LastUserMessage) ? GetCombination(_LastUserMessage) : _lastUserMessageFallback.Value);
     }
-    private async Task GetBotUpToDate()
-    {
-        byte MessageLimit = 30;
+    
 
-        SocketThreadChannel thread = (SocketThreadChannel)_client.GetChannel(Serverstuff._ThreadAlphabetBack);
-        IEnumerable<IMessage> messages = await thread.GetMessagesAsync(limit: MessageLimit).FlattenAsync();
-
-        Streak CurrentStreak = new();
-        Streak TopStreak = new();
-
-        foreach (IMessage msg in messages.Reverse())
-        {
-            try
-            {
-                if (!CheckFormat(msg))
-                {
-                    AddFishReactionAsync((SocketMessage)msg);
-                    continue;
-                }
-            }
-            catch (InvalidCastException)
-            {
-                continue;
-            }
-
-            if (Streak.currentIndex == 0)
-            {
-                CurrentStreak.currentCombination = GetCombination(msg);
-            }
-            else if (CurrentStreak.currentCombination != GetLastCombination(msg))
-            {
-                CurrentStreak.streak = 0;
-                CurrentStreak.currentCombination = GetCombination(msg);
-            }
-            else if (CurrentStreak.currentCombination == GetLastCombination(msg))
-            {
-                CurrentStreak.currentCombination = GetCombination(msg);
-            }
-
-            CurrentStreak.streak++;
-            Streak.currentIndex++;
-            if (CurrentStreak.streak > TopStreak.streak)
-                TopStreak = new(CurrentStreak.streak, CurrentStreak.currentCombination);
-        }
-
-        int getIndexLastTopStreak = messages.ToList()
-            .FindIndex(x => CheckFormat(x) && GetCombination(x) == TopStreak.currentCombination);
-        string s = TopStreak.currentCombination;
-        for (int i = 0; getIndexLastTopStreak != i; i++)
-        {
-            s = GetNextCombination(s);
-        }
-
-        _lastUserMessageFallback = new(messages.First().Author, s);
-        Console.WriteLine(getIndexLastTopStreak);
-        Console.WriteLine(s);
-    }
-
-    private async void GetExactCurrentCombination()
-    {
-        ITextChannel? channel = _client.GetChannel(Serverstuff._TBoardGeneral) as ITextChannel;
-        if (channel == null)
-        {
-            throw new Exception("Channel not found.");
-        }
-
-        IReadOnlyCollection<IThreadChannel> threads = await channel.GetActiveThreadsAsync();
-        IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == Serverstuff._ThreadAlphabetBack) as IThreadChannel;
-        if (thread == null)
-        {
-            throw new Exception("Thread not found.");
-        }
-
-        var messages = await thread.GetMessagesAsync(limit: 10000).FlattenAsync();
-        ushort messageCount = (ushort)messages.Count();
-        ushort counter = 0;
-        Console.WriteLine(messageCount);
-        for (char first = 'Z'; first >= 'A'; first--)
-        for (char second = 'Z'; second >= 'A'; second--)
-        for (char third = 'Z'; third >= 'A'; third--)
-        {
-            counter++;
-            if (counter == messageCount) Console.WriteLine($"{first}{second}{third}");
-        }
-
-        ;
-    }
-
-    private static string GetLastCombination(IMessage message)
-    {
-        char[] chars = GetCombination(message).ToCharArray();
-
-        for (int i = 2; i >= 0; i--)
-        {
-            if (chars[i] != 'Z')
-            {
-                chars[i] = (char)(chars[i] + 1);
-                return new string(chars);
-            }
-            else chars[i] = 'A';
-        }
-
-        return new string(chars);
-    }
-
-    private static string GetNextCombination(string message)
-    {
-        char[] chars = message.ToCharArray();
-
-        for (int i = 2; i >= 0; i--)
-        {
-            if (chars[i] != 'A')
-            {
-                chars[i] = (char)(chars[i] - 1);
-                return new string(chars);
-            }
-            else chars[i] = 'Z';
-        }
-
-        return new string(chars);
-    }
 
     private static bool CheckFormat(IMessage message)
     {
@@ -370,28 +336,18 @@ public class AlphabetThread :Message
         return GetCombination(message) == GetCombination(message).ToUpper();
     }
 
-    private static string GetCombination(IMessage message) => message.Content.Substring(0, 3);
-    internal class Streak // COMBOOOO!!!
+    public Task MessageReceived(IMessage message)
     {
-        public static byte currentIndex = 0;
-        public byte streak = 0;
-        public string currentCombination = "";
-
-        public Streak()
-        {
-        }
-
-        public Streak(byte Streak, string CurrentCombination)
-        {
-            streak = Streak;
-            currentCombination = CurrentCombination;
-        }
+        throw new NotImplementedException();
     }
 
-    internal class UserMessage
+    Task IServerMessageChannel.MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage message, ISocketMessageChannel channel)
     {
-        private IUser user;
-        private string UserCombination;
-        
+        return MessageUpdated(before, message, channel);
+    }
+
+    public Task MessageDeleted()
+    {
+        throw new NotImplementedException();
     }
 }

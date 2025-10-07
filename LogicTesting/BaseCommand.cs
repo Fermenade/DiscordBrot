@@ -96,7 +96,7 @@ public abstract class BaseCommand : ICommand
             return;
         }
 
-        foreach (var VARIABLE in userCommand)
+        foreach (UserCommand.CArgument VARIABLE in userCommand)
         {
             VARIABLE.Command.Execute(VARIABLE.Argument);
         }

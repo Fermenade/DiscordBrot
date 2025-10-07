@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using DGruppensuizidBot;
 using DGruppensuizidBot.commands;
+using DGruppensuizidBot.Discord;
 
 class Programm
 {
@@ -41,9 +42,13 @@ class Programm
         string token = File.ReadAllText(Serverstuff.PathToken); // Sike, ihr kriegt keinen Token
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
-        _client.Ready += OnReady; //I'm ready!!! I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready I'm ready
 
-        await _readyCompletionSource.Task;
+        _client.Ready += () => {
+            _readyCompletionSource.SetResult(true); // Signal that the bot is ready
+            return Task.CompletedTask; // He is Ready!!!
+        };
+
+    await _readyCompletionSource.Task;
 
         await GetBotUpToDate(); //Get Bot up to date - thats what the method says
         _client.MessageUpdated += MessageUpdated; // Update von Message
@@ -55,12 +60,6 @@ class Programm
         _ = UpdateStatusAsync(_cancellationTokenDayTime.Token);
         // Block the program until it is closed (:
         await Task.Delay(-1);
-    }
-
-    private Task OnReady()
-    {
-        _readyCompletionSource.SetResult(true); // Signal that the bot is ready
-        return Task.CompletedTask; // He is Ready!!!
     }
 
     private Task Log(LogMessage arg)
@@ -81,7 +80,7 @@ class Programm
         {
             // Enqueue the message
             _messageQueue.Enqueue(cachedMessage); //enqhene
-
+            
             // Start processing if not already processing
             if (!_isProcessingQueue) //wenn nicht dann doch
             {
@@ -124,8 +123,8 @@ class Programm
     {
         if (message is SocketUserMessage userMessage)
         {
-            var channel = userMessage.Channel;
-            var messageReference = new MessageReference(userMessage.Id);
+            ISocketMessageChannel? channel = userMessage.Channel;
+            MessageReference messageReference = new MessageReference(userMessage.Id);
 
             // Antwort senden
             await channel.SendMessageAsync(replyText, messageReference: messageReference);
@@ -269,7 +268,7 @@ class Programm
 
     private void PrintAlphabetStats(Dictionary<ulong, object[]> map, ISocketMessageChannel channel)
     {
-        var embed = new EmbedBuilder
+        EmbedBuilder embed = new EmbedBuilder
         {
             Title = "Leute die das Alphabet ned können",
             Color = Color.Blue
@@ -357,7 +356,7 @@ class Programm
                 IThreadChannel? thread = threads.FirstOrDefault(t => t.Id == Serverstuff._ThreadAlphabetBack) as IThreadChannel;
                 var userMessageCount = new Dictionary<ulong, int>();
                 var messages = await thread.GetMessagesAsync(limit: 10000).FlattenAsync();
-                foreach (var message in messages)
+                foreach (IMessage? message in messages)
                 {
                     if (userMessageCount.ContainsKey(message.Author.Id))
                     {
@@ -373,7 +372,7 @@ class Programm
 
                 foreach (var kvp in userMessageCount.OrderByDescending(x => x.Value))
                 {
-                    var user = await _client.GetUserAsync(kvp.Key);
+                    IUser? user = await _client.GetUserAsync(kvp.Key);
                     result.AppendLine($"{user.Username}: {kvp.Value} messages");
                 }
 

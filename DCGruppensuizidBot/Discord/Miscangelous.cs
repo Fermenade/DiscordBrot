@@ -2,7 +2,7 @@ using Discord;
 
 namespace DGruppensuizidBot.Discord;
 
-public class Miscangelous:CoreDiscord
+public class Miscangelous
 {
     byte TeaThinkCounter = 0;
     private async Task UpdateStatusAsync(CancellationToken cancellationToken)
