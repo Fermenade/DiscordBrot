@@ -46,10 +46,10 @@ partial class Commands
             }
 
             /// <summary>
-            /// Get entire subcommand list of command
+            /// Get entire subcommand List of command
             /// </summary>
             /// <param name="command"></param>
-            /// <returns>Returns entire subcommand list of command</returns>
+            /// <returns>Returns entire subcommand List of command</returns>
             string ShowHelp(BaseCommand command)
             {
                 StringBuilder help = new StringBuilder();
@@ -105,9 +105,9 @@ partial class Commands
         }
 
             /// <summary>
-            /// Shows entire command list
+            /// Shows entire command List
             /// </summary>
-            /// <returns>Returns list of all available commands</returns>
+            /// <returns>Returns List of all available commands</returns>
             static void ShowAllHelp(StringBuilder help)
             {
                 foreach (BaseCommand command in CommandManager._commands)

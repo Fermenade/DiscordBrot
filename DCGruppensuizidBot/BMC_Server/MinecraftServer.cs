@@ -160,7 +160,7 @@ public class MinecraftCoreMcServer:CoreMCServer
 
     void ListPlayerOnServer()
     {
-        WriteToProcess("list");
+        WriteToProcess("List");
     }
 
     private Timer checkForOnlinePlayerTimer;

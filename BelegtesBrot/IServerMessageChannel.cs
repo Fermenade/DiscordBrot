@@ -3,7 +3,7 @@ using Discord.WebSocket;
 
 namespace DGruppensuizidBot.AlphabetThread;
 
-internal interface IServerMessageChannel : IBaseCom
+internal interface IServerMessageChannel : IBaseCom, IChannel
 {
-    public IMessageChannel Channel { get; }
+    public IGuildChannel Channel { get; }
 }

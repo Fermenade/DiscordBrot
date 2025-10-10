@@ -14,13 +14,14 @@ namespace DGruppensuizidBot.Discord;
     private string _token {get; set; }
     public Random _random = new();
     public static DiscordSocketClient _client;
-    public static BaseDiscordClient _Base;
-    public static DiscordShardedClient // TODO: Look at me!!!
+
+    public static DiscordShardedClient e; // TODO: Look at me!!!
     private TaskCompletionSource<bool> _readyCompletionSource = new();
     public CoreDiscord(string token)
     {
-        _Base.
-        _token = token;
+        e.JoinedGuild
+        _client.JoinedGuild
+        _Base._token = token;
     }
     DiscordSocketConfig config = new DiscordSocketConfig
     {

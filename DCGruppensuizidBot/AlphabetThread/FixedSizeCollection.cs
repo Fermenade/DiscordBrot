@@ -1,36 +1,61 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Net.Quic;
+using System.Runtime.CompilerServices;
+using Microsoft.CSharp.RuntimeBinder;
+
 namespace DGruppensuizidBot.AlphabetThread;
 
-internal class FixedSizeCollection<T>(int capacity = 100)
+internal class FixedSizeCollection<T>
 {
-     private readonly List<T> _collection = new(capacity);
+    //Maybe reverse the order of the collection (first item is newest)
+    private readonly List<T> List;
+    public readonly int Capacity;
+    public FixedSizeCollection(List<T> list, int capacity)
+    {
+        ArgumentNullException.ThrowIfNull(list);
+        Capacity = capacity;
 
-    /// <summary>
-    /// This method adds an item to the collection.
-    /// This method needs   
-    /// </summary>
-    /// <param name="item"></param>
+
+        this.List = list;
+        List.Capacity = Capacity;
+    }
+
     public void Add(T item)
     {
-        if (_collection.Count > capacity) _collection.RemoveAt(0);
-
-        _collection.Add(item);
+        if (List.Count >= Capacity)
+        {
+            List.RemoveAt(0);
+        }
+        List.Add(item);
     }
-
-    public void Remove(T item)
+    public void Update(T old, T current)
     {
-        _collection.Remove(item);
+        int index = List.FindIndex( x => x.Equals(old));
+        if (index == -1)
+        {
+            throw new ArgumentException("Tried to update a item that is not present in collection");
+        }
+        UpdateAtIndex(index,current);
     }
 
-    public void Update(T oldItem,T newItem)
+    public void UpdateAtIndex(int index, T item)
     {
-        int index = _collection.IndexOf(oldItem);
-        Update(index,newItem);
-    }
-    public void Update(int index, T newItem)
-    {
-        _collection[index] = newItem;
+        List[index] = item;
     }
 
-    public List<T> GetCollection() => [.._collection]; // Return a copy to prevent external modification
-    public int Count => _collection.Count;
+    public bool Remove(T item)
+    {
+        return List.Remove(item);
+    }
+    public int Count => List.Count;
+    public ReadOnlyCollection<T> Collection => List.AsReadOnly();
+    
+    public T this[int index]
+    {
+        get => List[index];
+        set => throw new NotSupportedException();
+    } 
 }

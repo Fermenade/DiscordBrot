@@ -10,7 +10,7 @@ public struct User
                                      //The first one is the total amount of wrong spelling, the second one is
                                      //the Counter where other Users can Increase the counter of the Fool by reacting
                                      //to the User as much as possible to its message with something (maybe a fish).
-                                     //Save the specific wrong Message (or the link to it) and that to a list IMPORTANT!!!
+                                     //Save the specific wrong Message (or the link to it) and that to a List IMPORTANT!!!
                                      //
                                      //However some factor have to be considered:
                                      //what happens if a User adds a Fish even if the Fool has Corrected itself?

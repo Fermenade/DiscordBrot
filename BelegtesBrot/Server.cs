@@ -28,10 +28,7 @@ namespace DGruppensuizidBot
     internal class Server(IGuild guild) : IServer
     {
         public IGuild Guild => guild;
-
         public List<IServerMessageChannel> MessageChannels => getMessageChannels();
-
-
         public void MessageReceived(IMessage message)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)

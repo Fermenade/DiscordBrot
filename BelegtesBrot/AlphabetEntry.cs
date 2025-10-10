@@ -2,16 +2,12 @@ using Discord;
 
 namespace DGruppensuizidBot.AlphabetThread;
 
-internal class AlphabetEntry
+internal class AlphabetEntry(AlphabetMessage message, char[] actuallCombination)
 {
-    public AlphabetMessage message;
+    public AlphabetMessage message = message;
 
-    public readonly Combination actuallCombination;
+    public readonly char[] actuallCombination = actuallCombination;
 
-    public AlphabetEntry(AlphabetMessage message, Combination actuallCombination)
-    {
-
-    }
     internal bool Update(AlphabetMessage message)
     {
         this.message = message;
