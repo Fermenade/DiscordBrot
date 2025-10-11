@@ -1,20 +1,20 @@
-
 namespace DGruppensuizidBot.AlphabetThread;
 
-internal class AlphabetEntry<T, TDataype> where T : ICombination<TDataype>
+public class AlphabetEntry<T, TDataype> where T : ICombination<T, TDataype>
 {
     public AlphabetMessage<T, TDataype> message;
+    public string Author;
 
-    public readonly ICombination<TDataype> actuallCombination;
+    public readonly ICombination<T, TDataype> actuallCombination;
 
-    public AlphabetEntry(AlphabetMessage<T, TDataype> message, ICombination<TDataype> actuallCombination)
+    public AlphabetEntry(AlphabetMessage<T, TDataype> message, ICombination<T, TDataype> actuallCombination)
     {
         this.message = message;
         this.actuallCombination = actuallCombination;
     }
-    internal bool Update(AlphabetMessage<T, TDataype> message)
+
+    internal void Update(AlphabetMessage<T, TDataype> message)
     {
         this.message = message;
-        return message.GetCombination() == actuallCombination;
     }
 }

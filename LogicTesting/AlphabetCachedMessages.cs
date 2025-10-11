@@ -1,6 +1,8 @@
+using LogicTesting;
+
 namespace DGruppensuizidBot.AlphabetThread;
 
-public class AlphabetCachedMessages<T, TDataype> where T : ICombination<TDataype>
+public class AlphabetCachedMessages<T, TDataype> where T : ICombination<T, TDataype>
 {
     public AlphabetCachedMessages()
     {
@@ -8,7 +10,7 @@ public class AlphabetCachedMessages<T, TDataype> where T : ICombination<TDataype
 
         collection = new MessageCache<T, TDataype>([new AlphabetEntry<T, TDataype>(e, e.GetCombination())]);
     }
-    public bool Add(AlphabetMessage<T, TDataype> message)
+    public FailureCase Add(AlphabetMessage<T, TDataype> message)
     {
         return collection.Add(message);
     }
@@ -16,8 +18,8 @@ public class AlphabetCachedMessages<T, TDataype> where T : ICombination<TDataype
     private List<AlphabetEntry<T, TDataype>> GetBotUpToDate()
     {
         List<AlphabetMessage<T, TDataype>> messages = new List<AlphabetMessage<T, TDataype>>();
-        Streak<TDataype> CurrentStreak = new();
-        Streak<TDataype> TopStreak = new();
+        Streak<T, TDataype> CurrentStreak = new();
+        Streak<T, TDataype> TopStreak = new();
         foreach (AlphabetMessage<T, TDataype> msg in messages)
         {
             if (msg.GetCombination() == null)
@@ -39,35 +41,35 @@ public class AlphabetCachedMessages<T, TDataype> where T : ICombination<TDataype
             }
 
             CurrentStreak.streak++;
-            Streak<T>.currentIndex++;
+            Streak<T, TDataype>.currentIndex++;
             if (CurrentStreak.streak > TopStreak.streak)
-                TopStreak = new Streak<TDataype>(CurrentStreak.streak, CurrentStreak.currentCombination);
+                TopStreak = new Streak<T, TDataype>(CurrentStreak.streak, CurrentStreak.currentCombination);
         }
 
         int getIndexLastTopStreak = messages
             .FindIndex(x => x.GetCombination() == TopStreak.currentCombination);
-        ICombination<TDataype> s = TopStreak.currentCombination;
+        ICombination<T, TDataype> s = TopStreak.currentCombination;
         List<AlphabetEntry<T, TDataype>> list = new List<AlphabetEntry<T, TDataype>>(messages.Count);
 
         for (int i = 0; i < messages.Count; i++)
         {
-            list.Add(new(messages[i], (ICombination<TDataype>)TopStreak.currentCombination.GetCombo(i - getIndexLastTopStreak)));
+            list.Add(new(messages[i], (ICombination<T, TDataype>)TopStreak.currentCombination.GetCombo(i - getIndexLastTopStreak)));
         }
 
         return list;
     }
 }
-internal class Streak<TDataype> // COMBOOOO!!!
+internal class Streak<T, TDataype> where T : ICombination<T, TDataype>
 {
     public static byte currentIndex = 0;
     public byte streak = 0;
-    public ICombination<TDataype> currentCombination;
+    public ICombination<T, TDataype> currentCombination;
 
     public Streak()
     {
     }
 
-    public Streak(byte Streak, ICombination<TDataype> CurrentCombination)
+    public Streak(byte Streak, ICombination<T, TDataype> CurrentCombination)
     {
         streak = Streak;
         currentCombination = CurrentCombination;

@@ -50,6 +50,6 @@ internal class FixedSizeCollection<T>
     public T this[int index]
     {
         get => List[index];
-        set => throw new NotSupportedException();
+        init => throw new NotSupportedException();
     }
 }

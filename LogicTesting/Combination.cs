@@ -1,20 +1,59 @@
+using LogicTesting;
 using System.Collections.ObjectModel;
 
 namespace DGruppensuizidBot.AlphabetThread;
 
-public class Combination : ReadOnlyCollection<char>, ICombination<char>
+public class Combination(char[] combination) : ReadOnlyCollection<char>(combination), ICombination<Combination, char>
 {
-    public Combination(char[] combination) : base(combination)
-    { }
-    public ICombination<char> GetCombo(int offset)
+    public static FailureCase AddRule(AlphabetEntry<Combination, char> previousMessage, AlphabetEntry<Combination, char> currentMessage)
+    {
+        if (previousMessage.Author == currentMessage.Author)
+        {
+            return FailureCase.DuplicateAuthor;
+        }
+        var e = currentMessage.message.GetCombination();
+
+        if (e == null)
+        {
+            return FailureCase.NotCombination;
+        }
+        if (currentMessage.actuallCombination.GetHashCode() == e.GetHashCode())
+        {
+            return FailureCase.None;
+        }
+        else
+        {
+            return FailureCase.WrongCombination;
+        }
+    }
+    public static FailureCase UpdateRule(AlphabetEntry<Combination, char> previousMessage, AlphabetEntry<Combination, char> currentMessage)
+    {
+        if (previousMessage.Author == currentMessage.Author)
+        {
+            return FailureCase.DuplicateAuthor;
+        }
+        var e = currentMessage.message.GetCombination();
+
+        if (e == null)
+        {
+            return FailureCase.NotCombination;
+        }
+        if (currentMessage.actuallCombination.GetHashCode() == e.GetHashCode())
+        {
+            return FailureCase.None;
+        }
+        else
+        {
+            return FailureCase.WrongCombination;
+        }
+    }
+    public ICombination<Combination, char> GetCombo(int offset)
     {
         Combination currentCombo = this;
 
         switch (offset)
         {
-            case 0:
-                return currentCombo;
-            case > 0:
+            case >= 0:
                 {
                     int counter = 0;
                     for (char first = currentCombo[0]; first >= 'A'; first--)
@@ -28,7 +67,7 @@ public class Combination : ReadOnlyCollection<char>, ICombination<char>
 
                     break;
                 }
-            case < 0:
+            case <= 0:
                 {
                     int counter = -0;
                     for (char first = currentCombo[0]; first <= 'Z'; first++)
@@ -57,7 +96,17 @@ public class Combination : ReadOnlyCollection<char>, ICombination<char>
             return hash;
         }
     }
-    public static ICombination<char> GetCombination(string input) => new Combination(input.ToCharArray(0, 3));
+    public static ICombination<Combination, char>? GetCombination(string input)
+    {
+        try
+        {
+            return new Combination(input.ToCharArray(0, 3));
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
+    }
 
     public static bool CheckFormat(IList<char> combination) => combination.Count == 3 && combination.All(x => 65 <= x && x >= 90);
     public bool CheckFormat() => CheckFormat(base.Items);
