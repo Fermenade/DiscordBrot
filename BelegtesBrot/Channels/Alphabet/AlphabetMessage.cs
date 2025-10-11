@@ -1,6 +1,6 @@
 using Discord;
 
-namespace BelegtesBrot.Channels;
+namespace BelegtesBrot.Channels.Alphabet;
 
 public class AlphabetMessage(IMessage message)
 {

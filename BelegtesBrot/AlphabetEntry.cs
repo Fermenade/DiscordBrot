@@ -1,4 +1,4 @@
-using BelegtesBrot.Channels;
+using BelegtesBrot.Channels.Alphabet;
 
 namespace BelegtesBrot;
 
