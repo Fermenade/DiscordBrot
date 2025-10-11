@@ -1,8 +1,4 @@
-
-using System.Linq.Expressions;
-using LogicTesting;
-
-namespace DGruppensuizidBot.AlphabetThread;
+namespace BelegtesBrot.Channels.Cache;
 
 internal class MessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntry<T, TDataype>> where T : ICombination<T, TDataype>
 {

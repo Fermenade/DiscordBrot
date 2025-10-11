@@ -1,8 +1,9 @@
+
 using Discord;
 
-namespace BelegtesBrot.Channels;
+namespace BelegtesBrot.Channels.Cache;
 
-public class AlphabetMessage(IMessage message)
+public class AlphabetMessage<T, TDatatype>(IMessage message) where T : ICombination<T, TDatatype>
 {
     public string Content => message.Content;
     public DateTimeOffset Timestamp => message.Timestamp;
@@ -13,16 +14,8 @@ public class AlphabetMessage(IMessage message)
     public Task AddReactionAsync(IEmote emote, RequestOptions options = null) => message.AddReactionAsync(emote, options);
     public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null) => message.RemoveReactionAsync(emote, user, options);
     public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null) => message.RemoveReactionAsync(emote, userId, options);
-    public char[]? GetCombination()
+    public ICombination<T, TDatatype>? GetCombination()
     {
-        char[] chars = Content.ToCharArray(0, 3);
-        return CheckFormat(chars) ? chars : [(char)0, (char)0, (char)0];
+        return T.GetCombination(Content);
     }
-
-    /// <summary>
-    /// Checks if the given combination is of length 3 and if the letters are uppercase.
-    /// </summary>
-    /// <param name="combination"></param>
-    /// <returns>true if all conditions are fulfilled</returns>
-    private static bool CheckFormat(char[] combination) => combination.Length == 3 && combination.All(x => 65 <= x && x >= 90);
 }

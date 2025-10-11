@@ -1,4 +1,4 @@
-﻿namespace LogicTesting;
+﻿namespace BelegtesBrot.Channels.Cache;
 
 public enum FailureCase
 {

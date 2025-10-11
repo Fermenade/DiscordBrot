@@ -1,6 +1,4 @@
-using LogicTesting;
-
-namespace DGruppensuizidBot.AlphabetThread;
+namespace BelegtesBrot.Channels.Cache;
 
 public class AlphabetCachedMessages<T, TDataype> where T : ICombination<T, TDataype>
 {
@@ -63,7 +61,7 @@ public class AlphabetCachedMessages<T, TDataype> where T : ICombination<T, TData
 
         for (int i = 0; i < messages.Count; i++)
         {
-            list.Add(new(messages[i], (ICombination<T, TDataype>)TopStreak.currentCombination.GetCombo(i - getIndexLastTopStreak)));
+            list.Add(new(messages[i], TopStreak.currentCombination.GetCombo(i - getIndexLastTopStreak)));
         }
 
         return list;

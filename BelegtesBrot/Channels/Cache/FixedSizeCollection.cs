@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
 
-namespace DGruppensuizidBot.AlphabetThread;
+namespace BelegtesBrot.Channels.Cache;
 
 internal class FixedSizeCollection<T>
 {

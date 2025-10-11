@@ -1,5 +1,4 @@
-﻿using DGruppensuizidBot.AlphabetThread;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 
 namespace BelegtesBrot.Channels

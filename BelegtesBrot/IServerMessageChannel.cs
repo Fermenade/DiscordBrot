@@ -1,6 +1,6 @@
 using Discord;
 
-namespace DGruppensuizidBot.AlphabetThread;
+namespace BelegtesBrot;
 
 internal interface IServerMessageChannel : IBaseCom, IChannel
 {

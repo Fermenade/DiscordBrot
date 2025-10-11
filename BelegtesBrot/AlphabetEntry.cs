@@ -1,4 +1,6 @@
-namespace DGruppensuizidBot.AlphabetThread;
+using BelegtesBrot.Channels;
+
+namespace BelegtesBrot;
 
 internal class AlphabetEntry(AlphabetMessage message, char[] actuallCombination)
 {

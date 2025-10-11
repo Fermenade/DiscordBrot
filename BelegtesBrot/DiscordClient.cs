@@ -1,5 +1,4 @@
-﻿using DGruppensuizidBot;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 
 namespace BelegtesBrot

@@ -1,9 +1,8 @@
-﻿using DGruppensuizidBot.AlphabetThread;
+﻿using System.Reflection;
 using Discord;
 using Discord.WebSocket;
-using System.Reflection;
 
-namespace DGruppensuizidBot
+namespace BelegtesBrot
 {
     internal interface IServer : IBaseCom
     {

@@ -1,13 +1,13 @@
-using LogicTesting;
+using BelegtesBrot.Channels.Cache;
 using System.Collections.ObjectModel;
 
-namespace DGruppensuizidBot.AlphabetThread;
+namespace BelegtesBrot.Channels.Alphabet;
 
 public class Combination(char[] combination) : ReadOnlyCollection<char>(combination), ICombination<Combination, char>
 {
     public static FailureCase AddRule(AlphabetEntry<Combination, char> previousMessage, AlphabetEntry<Combination, char> currentMessage)
     {
-        if (previousMessage.Author == currentMessage.Author)
+        if (previousMessage.message.Author == currentMessage.message.Author)
         {
             return FailureCase.DuplicateAuthor;
         }
@@ -109,5 +109,5 @@ public class Combination(char[] combination) : ReadOnlyCollection<char>(combinat
     }
 
     public static bool CheckFormat(IList<char> combination) => combination.Count == 3 && combination.All(x => 65 <= x && x >= 90);
-    public bool CheckFormat() => CheckFormat(base.Items);
+    public bool CheckFormat() => CheckFormat(Items);
 }
