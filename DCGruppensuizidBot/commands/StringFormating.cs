@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace DGruppensuizidBot.commands;
+namespace LogicTesting;
 
 public static class StringFormating
 {

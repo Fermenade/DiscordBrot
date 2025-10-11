@@ -1,7 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text;
 
-namespace DGruppensuizidBot.commands;
+namespace LogicTesting;
 
 partial class Commands
 {
@@ -46,10 +47,10 @@ partial class Commands
             }
 
             /// <summary>
-            /// Get entire subcommand List of command
+            /// Get entire subcommand list of command
             /// </summary>
             /// <param name="command"></param>
-            /// <returns>Returns entire subcommand List of command</returns>
+            /// <returns>Returns entire subcommand list of command</returns>
             string ShowHelp(BaseCommand command)
             {
                 StringBuilder help = new StringBuilder();
@@ -105,9 +106,9 @@ partial class Commands
         }
 
             /// <summary>
-            /// Shows entire command List
+            /// Shows entire command list
             /// </summary>
-            /// <returns>Returns List of all available commands</returns>
+            /// <returns>Returns list of all available commands</returns>
             static void ShowAllHelp(StringBuilder help)
             {
                 foreach (BaseCommand command in CommandManager._commands)

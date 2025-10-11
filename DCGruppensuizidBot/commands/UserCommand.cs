@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace DGruppensuizidBot.commands;
+namespace LogicTesting;
 
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class UserCommand

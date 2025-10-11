@@ -1,7 +1,7 @@
 ﻿// using Discord;
 // using Discord.WebSocket;
 //
-// namespace DGruppensuizidBot.commands;
+// namespace LogicTesting;
 //
 // internal static partial class Commands
 // {
@@ -110,3 +110,4 @@
 //         return false;
 //     }
 // }
+//

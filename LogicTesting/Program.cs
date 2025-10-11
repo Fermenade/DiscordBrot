@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using DGruppensuizidBot.AlphabetThread;
 
 namespace LogicTesting
 {
@@ -11,19 +12,11 @@ namespace LogicTesting
 
         private void RunThisShit()
         {
+            AlphabetCachedMessages<Combination, char> cache = new AlphabetCachedMessages<Combination, char>();
+            Console.WriteLine("Initalized, first combination");
             while (true)
             {
-                UserCommand? command;
-                string input = Console.ReadLine();
-                try
-                {
-                    command = new UserCommand(input, null);
-                    CommandManager.ExecuteCommand(command);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
+                Console.WriteLine(cache.Add(new AlphabetMessage<Combination, char>(Console.ReadLine())));
             }
         }
         // private void RunThisShit()

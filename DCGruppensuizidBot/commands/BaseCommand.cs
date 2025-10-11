@@ -1,6 +1,7 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
 
-namespace DGruppensuizidBot.commands;
+namespace LogicTesting;
 
 public static class CommandManager
 {
