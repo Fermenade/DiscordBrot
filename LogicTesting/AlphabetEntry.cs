@@ -3,7 +3,7 @@ namespace DGruppensuizidBot.AlphabetThread;
 
 internal class AlphabetEntry<T, TDataype> where T : ICombination<TDataype>
 {
-    public AlphabetMessage<T,TDataype> message;
+    public AlphabetMessage<T, TDataype> message;
 
     public readonly ICombination<TDataype> actuallCombination;
 

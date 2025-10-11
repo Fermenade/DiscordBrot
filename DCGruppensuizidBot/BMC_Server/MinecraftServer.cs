@@ -1,31 +1,31 @@
+using DGruppensuizidBot.Discord;
+using Discord.WebSocket;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Timers;
-using DGruppensuizidBot.Discord;
-using Discord.WebSocket;
 using Timer = System.Timers.Timer;
 
 namespace DGruppensuizidBot.BMC_Server;
 
-public class CoreMCServer 
+public class CoreMCServer
 {
     protected SocketUser? UserThatStartedServer;
-    protected  Process? _process = null;
+    protected Process? _process = null;
     protected bool ServerOnline = false;
-    
+
     protected PlayerManager _playerManager = new();
     protected string ServerPath { get; set; }
-    protected string ScriptPath {get; set;}
+    protected string ScriptPath { get; set; }
     private Timer checkForOnlinePlayerTimer = new()
     {
-        Interval = 1000*Serverstuff.ShutdownTime,
+        Interval = 1000 * Serverstuff.ShutdownTime,
         AutoReset = false
     };
 
     protected DateTime _startTime = DateTime.MinValue;
-    protected  DateTime _endTime = DateTime.MaxValue;
-        
+    protected DateTime _endTime = DateTime.MaxValue;
+
     protected ProcessStartInfo processInfo = new ProcessStartInfo
     {
         FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" : @"/bin/bash",
@@ -105,11 +105,11 @@ public class CoreMCServer
     }
 }
 
-public class MinecraftCoreMcServer:CoreMCServer
+public class MinecraftCoreMcServer : CoreMCServer
 {
     private static List<Process>? _RunningProcesses;
 
-    public MinecraftCoreMcServer(SocketUser socketUser):this()
+    public MinecraftCoreMcServer(SocketUser socketUser) : this()
     {
         UserThatStartedServer = socketUser;
     }
@@ -129,7 +129,7 @@ public class MinecraftCoreMcServer:CoreMCServer
             throw new("Process already running");
         }
 
-        
+
         _process = new();
         if (_process.StartInfo.CreateNoWindow != true)
         {
@@ -155,7 +155,7 @@ public class MinecraftCoreMcServer:CoreMCServer
     void WriteToProcess(string prompt)
     {
         if (_process != null)
-           _process.StandardInput.WriteLine(prompt);
+            _process.StandardInput.WriteLine(prompt);
     }
 
     void ListPlayerOnServer()
@@ -183,12 +183,12 @@ public class MinecraftCoreMcServer:CoreMCServer
 
     void HandleRecivedServerData(object sender, DataReceivedEventArgs e)
     {
-        if (_process == null) throw new ("Missing process");
+        if (_process == null) throw new("Missing process");
         if (!string.IsNullOrWhiteSpace(e.Data))
         {
             string data = e.Data;
-            
-            
+
+
             //[02:14:50] [Server thread/INFO]:
             // string serverPrefix = @"$$(\\d{2}:\\d{2}:\\d{2})$$ $$Server thread/INFO$$:";
             // string serverIsReady = @$"{serverPrefix} Done $(\\d+(\\.\\d+)?)s$! For help, type ""help""";
@@ -204,8 +204,8 @@ public class MinecraftCoreMcServer:CoreMCServer
             // Done (0.838s)! For help, type \"help\"
             string serverShutdown = @$"{serverPrefix} Stopped IO worker!";
             //serverShutdown = @$"{serverPrefix} ThreadedAnvilChunkStorage: All dimensions are saved";
-            
-            
+
+
             Match match;
             if (Regex.IsMatch(data, serverIsReady)) //Letzte nachricht, wenn der server hochgefahren wurde
             {
@@ -214,7 +214,7 @@ public class MinecraftCoreMcServer:CoreMCServer
                 StartServerstopCountDownTimer(); //Der Server soll gleich in den shutdown timer laufen lassen, damit falls keine person joinen sollte der server nicht online bleibt
                 _susysusus = true;
                 _startTime = DateTime.Now;
-                
+
                 ServerOnline = true;
                 //leuten ne sperre verpassen, die den server hochfahren ohne das dieser benutzt wird.
             }
@@ -230,9 +230,9 @@ public class MinecraftCoreMcServer:CoreMCServer
             else if (Regex.IsMatch(data, playerDiconnectPattern)) //check if player disconnected
             {
                 match = Regex.Match(data, playerDiconnectPattern);
-                
+
                 _playerManager.PlayerLogout(match.Groups["playername"].Value);
-                
+
                 if (!_playerManager.GetCurrentOnlinePlayers().Any())
                 {
                     StartServerstopCountDownTimer();
@@ -241,10 +241,10 @@ public class MinecraftCoreMcServer:CoreMCServer
             else if (Regex.IsMatch(data, playerConnectPattern)) //check if player connected
             {
                 match = Regex.Match(data, playerConnectPattern);
-                
+
                 _playerManager.PlayerLogin(match.Groups["playername"].Value);
                 _susysusus = false;
-                
+
                 if (checkForOnlinePlayerTimer.Enabled) //If Shutdown was Started, it will stop it
                 {
                     StopServerstopCountDownTimer();

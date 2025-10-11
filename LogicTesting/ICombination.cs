@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-
-namespace DGruppensuizidBot.AlphabetThread;
+﻿namespace DGruppensuizidBot.AlphabetThread;
 
 public interface ICombination<TDatatype> : IReadOnlyCollection<TDatatype>
 {

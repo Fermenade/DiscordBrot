@@ -11,8 +11,8 @@ public class AlphabetMessage(IMessage message)
     public IMessageChannel Channel => message.Channel;
     public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => message.Reactions;
     public Task AddReactionAsync(IEmote emote, RequestOptions options = null) => message.AddReactionAsync(emote, options);
-    public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null) => message.RemoveReactionAsync( emote,  user,  options);
-    public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null) => message.RemoveReactionAsync( emote, userId, options);
+    public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null) => message.RemoveReactionAsync(emote, user, options);
+    public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null) => message.RemoveReactionAsync(emote, userId, options);
     public Combination? GetCombination()
     {
         char[] chars = Content.ToCharArray(0, 3);

@@ -1,17 +1,11 @@
-using System.Collections.Concurrent;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
-using DGruppensuizidBot.commands;
 using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 
 namespace DGruppensuizidBot.Discord;
 
- class CoreDiscord
+class CoreDiscord
 {
-    private string _token {get; set; }
+    private string _token { get; set; }
     public Random _random = new();
     public static DiscordSocketClient _client;
 
@@ -36,7 +30,8 @@ namespace DGruppensuizidBot.Discord;
         string token = File.ReadAllText(_token); // Sike, ihr kriegt keinen Token
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
-        _client.Ready += () => {
+        _client.Ready += () =>
+        {
             _readyCompletionSource.SetResult(true); // Signal that the bot is ready
             return Task.CompletedTask; // He is Ready!!!
         };
@@ -45,7 +40,7 @@ namespace DGruppensuizidBot.Discord;
         _client.MessageUpdated += MessageUpdated; // Update von Message
         _client.MessageDeleted +=; //Detelte
         _client.MessageReceived += MessageReceived; // Wenn neue Message
-        
+
         //_ = SendRandomMessagesAsync(_cancellationTokenSource.Token); //Send Messages - cancelation is irgendwie cool.
         //_ = UpdateStatusAsync(_cancellationTokenDayTime.Token);
     }
@@ -68,7 +63,7 @@ namespace DGruppensuizidBot.Discord;
     private async Task MessageReceived(SocketMessage message)
     {
         //AlphabetThread 
-        
+
         //CommandChannel
 
         // if (message is SocketUserMessage userMessage && message.Author is SocketUser user) /*&&  !message.Author.IsBot*/
@@ -107,22 +102,22 @@ namespace DGruppensuizidBot.Discord;
                     ? _LastUserMessageFallback.Value
                     : GetCombination(_LastUserMessage);
                 for (char first = Comby[0]; first <= 'Z'; first++)
-                for (char second = Comby[1]; second <= 'Z'; second++)
-                for (char third = Comby[2]; third <= 'Z'; third++)
-                {
-                    counter++;
-                    if (counter == index)
-                    {
-                        if ($"{first}{second}{third}" == GetCombination(targetMessage))
+                    for (char second = Comby[1]; second <= 'Z'; second++)
+                        for (char third = Comby[2]; third <= 'Z'; third++)
                         {
-                            RemoveFishReactionAsync(message);
+                            counter++;
+                            if (counter == index)
+                            {
+                                if ($"{first}{second}{third}" == GetCombination(targetMessage))
+                                {
+                                    RemoveFishReactionAsync(message);
+                                }
+                                else //There was a bug
+                                {
+                                    AddFishfReactionAsync(message);
+                                }
+                            }
                         }
-                        else //There was a bug
-                        {
-                            AddFishfReactionAsync(message);
-                        }
-                    }
-                }
             }
         }
     }

@@ -1,19 +1,16 @@
-﻿using Discord;
+﻿using DGruppensuizidBot;
+using Discord;
 using Discord.WebSocket;
 using System.Collections.Concurrent;
-
 using System.Text;
 using System.Text.Json;
-using DGruppensuizidBot;
-using DGruppensuizidBot.commands;
-using DGruppensuizidBot.Discord;
 
 class Programm
 {
     private DiscordSocketClient _client;
 
     private SocketUserMessage _LastUserMessage;
-    
+
 
     private KeyValuePair<IUser, string> _LastUserMessageFallback;
 
@@ -43,12 +40,13 @@ class Programm
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
 
-        _client.Ready += () => {
+        _client.Ready += () =>
+        {
             _readyCompletionSource.SetResult(true); // Signal that the bot is ready
             return Task.CompletedTask; // He is Ready!!!
         };
 
-    await _readyCompletionSource.Task;
+        await _readyCompletionSource.Task;
 
         await GetBotUpToDate(); //Get Bot up to date - thats what the method says
         _client.MessageUpdated += MessageUpdated; // Update von Message
@@ -80,7 +78,7 @@ class Programm
         {
             // Enqueue the message
             _messageQueue.Enqueue(cachedMessage); //enqhene
-            
+
             // Start processing if not already processing
             if (!_isProcessingQueue) //wenn nicht dann doch
             {
@@ -238,7 +236,7 @@ class Programm
         WriteScoreboard(map, user);
     }
 
-    
+
     void CreateFileIfNotExists(string path)
     {
         if (!File.Exists(path)) File.Create(path);
@@ -288,7 +286,7 @@ class Programm
     {
         await channel.SendMessageAsync(embed: embed.Build());
         IMessageChannel chan = channel;
-        
+
     }
     private async void DisplayStuffInDC(string text, IMessageChannel channel)
     {
@@ -326,8 +324,8 @@ class Programm
     private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
     {
         ITextChannel? channel = _client.GetChannel(Serverstuff._ThreadAlphabetBack) as ITextChannel;
-        
-        if(!CheckIfChannelExists(channel))return;
+
+        if (!CheckIfChannelExists(channel)) return;
         while (!cancellationToken.IsCancellationRequested)
         {
             string[] lines = await File.ReadAllLinesAsync(Serverstuff.PathCommands);
@@ -419,22 +417,22 @@ class Programm
                     ? _LastUserMessageFallback.Value
                     : GetCombination(_LastUserMessage);
                 for (char first = Comby[0]; first <= 'Z'; first++)
-                for (char second = Comby[1]; second <= 'Z'; second++)
-                for (char third = Comby[2]; third <= 'Z'; third++)
-                {
-                    counter++;
-                    if (counter == index)
-                    {
-                        if ($"{first}{second}{third}" == GetCombination(targetMessage))
+                    for (char second = Comby[1]; second <= 'Z'; second++)
+                        for (char third = Comby[2]; third <= 'Z'; third++)
                         {
-                            RemoveFishReactionAsync(message);
+                            counter++;
+                            if (counter == index)
+                            {
+                                if ($"{first}{second}{third}" == GetCombination(targetMessage))
+                                {
+                                    RemoveFishReactionAsync(message);
+                                }
+                                else //There was a bug
+                                {
+                                    AddReactionAsync(message);
+                                }
+                            }
                         }
-                        else //There was a bug
-                        {
-                            AddReactionAsync(message);
-                        }
-                    }
-                }
             }
         }
     }
@@ -540,12 +538,12 @@ class Programm
         ushort counter = 0;
         Console.WriteLine(messageCount);
         for (char first = 'Z'; first >= 'A'; first--)
-        for (char second = 'Z'; second >= 'A'; second--)
-        for (char third = 'Z'; third >= 'A'; third--)
-        {
-            counter++;
-            if (counter == messageCount) Console.WriteLine($"{first}{second}{third}");
-        }
+            for (char second = 'Z'; second >= 'A'; second--)
+                for (char third = 'Z'; third >= 'A'; third--)
+                {
+                    counter++;
+                    if (counter == messageCount) Console.WriteLine($"{first}{second}{third}");
+                }
 
         ;
     }

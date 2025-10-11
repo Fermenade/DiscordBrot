@@ -1,10 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Net.Quic;
-using System.Runtime.CompilerServices;
-using Microsoft.CSharp.RuntimeBinder;
 
 namespace DGruppensuizidBot.AlphabetThread;
 
@@ -33,12 +27,12 @@ internal class FixedSizeCollection<T>
     }
     public void Update(T old, T current)
     {
-        int index = List.FindIndex( x => x.Equals(old));
+        int index = List.FindIndex(x => x.Equals(old));
         if (index == -1)
         {
             throw new ArgumentException("Tried to update a item that is not present in collection");
         }
-        UpdateAtIndex(index,current);
+        UpdateAtIndex(index, current);
     }
 
     public void UpdateAtIndex(int index, T item)
@@ -52,10 +46,10 @@ internal class FixedSizeCollection<T>
     }
     public int Count => List.Count;
     public ReadOnlyCollection<T> Collection => List.AsReadOnly();
-    
+
     public T this[int index]
     {
         get => List[index];
         set => throw new NotSupportedException();
-    } 
+    }
 }

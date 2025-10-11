@@ -33,7 +33,7 @@
 //    public async Task MessageReceived(SocketMessage sMessage)
 //    {
 //        AlphabetMessage message = new(sMessage);
-        
+
 
 //        if (message.Channel is SocketThreadChannel threadChannel && threadChannel.Id == Serverstuff._ThreadAlphabetBack)
 //        {//TODO: Weiterleitungen werden nicht zugelassen und die Weiterleitung wird gelöscht.
@@ -240,7 +240,7 @@
 //    private async Task SendRandomMessagesAsync(CancellationToken cancellationToken)
 //    {
 //        ITextChannel? channel = _client.GetChannel(Serverstuff._ThreadAlphabetBack) as ITextChannel;
-        
+
 //        if(!CheckIfChannelExists(channel))return;
 //        while (!cancellationToken.IsCancellationRequested)
 //        {
@@ -327,7 +327,7 @@
 //        return GetNextCombination(_LastUserMessage == null ? _lastUserMessageFallback.Value :
 //            CheckFormat(_LastUserMessage) ? GetCombination(_LastUserMessage) : _lastUserMessageFallback.Value);
 //    }
-    
+
 
 
 //    private static bool CheckFormat(IMessage message)

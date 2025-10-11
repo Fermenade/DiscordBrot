@@ -1,13 +1,7 @@
 ﻿using DGruppensuizidBot.AlphabetThread;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace DGruppensuizidBot
 {
@@ -39,7 +33,7 @@ namespace DGruppensuizidBot
                 }
             }
         }
-        public void MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage,ISocketMessageChannel channel)
+        public void MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage, ISocketMessageChannel channel)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)
             {

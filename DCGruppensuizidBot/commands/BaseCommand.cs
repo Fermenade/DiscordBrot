@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace LogicTesting;
 
@@ -52,7 +51,7 @@ public interface ICommand
 {
     string Name { get; }
     string Description { get; }
-    string Usage => $"-{Name}" + (TakesParameter == true? $" {Parameter}":TakesParameter==null?$" ({Parameter})":"");
+    string Usage => $"-{Name}" + (TakesParameter == true ? $" {Parameter}" : TakesParameter == null ? $" ({Parameter})" : "");
     /// <summary>
     /// Custom Parameter Name for the command.
     /// </summary>

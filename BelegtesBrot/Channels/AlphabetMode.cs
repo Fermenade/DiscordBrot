@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DGruppensuizidBot.AlphabetThread;
+﻿using DGruppensuizidBot.AlphabetThread;
 using Discord;
 using Discord.WebSocket;
 
 namespace BelegtesBrot.Channels
 {
-    internal class AlphabetMode:IServerMessageChannel
+    internal class AlphabetMode : IServerMessageChannel
     {
         public ChannelType ChannelType { get; }
         public string Name { get; }

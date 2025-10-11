@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace DGruppensuizidBot;
@@ -16,7 +15,7 @@ public static class Serverstuff
         ? @$".\{PrefixPath}BMC_Server\start.ps1"
         : @$"./{PrefixPath}BMC_Server/start.sh"; //TODO: Make method that looks up the OS correct form
     public static string Scorefilepath = $"{PrefixPath}DiscordUserData.json"; //TODO: Rewrite AlphabetScore to UserData
-    
+
     /// <summary>
     /// Shutdowntimer time in Seconds
     /// </summary>
@@ -39,5 +38,5 @@ public static class Serverstuff
         }
     }
 
-    
+
 }

@@ -1,5 +1,3 @@
-using Discord;
-
 namespace DGruppensuizidBot.AlphabetThread;
 
 internal class AlphabetEntry(AlphabetMessage message, char[] actuallCombination)

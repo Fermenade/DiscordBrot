@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LogicTesting;
@@ -36,7 +35,7 @@ partial class Commands
                 foreach (string command in s)
                 {
                     BaseCommand? baseCommand = (BaseCommand?)CommandManager.GetBaseCommand(command);
-                    if (baseCommand == null||baseCommand.Visibility == false)
+                    if (baseCommand == null || baseCommand.Visibility == false)
                     {
                         Console.WriteLine($"{command} unknown command");
                         continue;
@@ -90,20 +89,20 @@ partial class Commands
 
                 Console.WriteLine(help.ToString());
             }
-        static StringBuilder ShowHelp(StringBuilder help,string[] command)
-        {
-            foreach (var VARIABLE in command)
+            static StringBuilder ShowHelp(StringBuilder help, string[] command)
             {
-                BaseCommand? i = (BaseCommand)CommandManager.GetBaseCommand(VARIABLE);
-                if (i == null)
+                foreach (var VARIABLE in command)
                 {
-                    help.AppendLine($"{VARIABLE} unknown command");
-                    continue;
+                    BaseCommand? i = (BaseCommand)CommandManager.GetBaseCommand(VARIABLE);
+                    if (i == null)
+                    {
+                        help.AppendLine($"{VARIABLE} unknown command");
+                        continue;
+                    }
+                    ShowAllHelp(help, i);
                 }
-                ShowAllHelp(help, i);
+                return help;
             }
-            return help;
-        }
 
             /// <summary>
             /// Shows entire command list
@@ -245,7 +244,7 @@ partial class Commands
         {
             public string Name => "p";
             public string Description => "Power server";
-            public bool? TakesParameter =>  false;
+            public bool? TakesParameter => false;
 
             public void Execute(string? args)
             {

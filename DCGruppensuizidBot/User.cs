@@ -17,6 +17,6 @@ public struct User
                                      //What if someone reacts to the Fool, but then the Fool corrects itsself, will the User get a penalty
                                      //for not removing its fish?
                                      //I would say yes, if the Message is within the last 10 Messages it adds a Penalty to the other User
-                                     
-                                     //TODO: Irgendwann kümmer ich mich darum.
+
+    //TODO: Irgendwann kümmer ich mich darum.
 }

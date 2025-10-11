@@ -38,9 +38,9 @@ public class UserCommand
         else command = command.TrimStart('!');
         if (command.Length == 0) throw new Exception("Not a valid Command");
 
-        
+
         string[] parts = StringFormating.SmalBoom(command); //TODO: das explode sorgt auch dafür, dass der prefix "-" nicht mehr als ein einzelnes element angesehen wird
-        
+
         this.Command = (BaseCommand)CommandManager.GetBaseCommand(parts[0]);
         this.Arguments = ParseAllArguments(parts.Skip(1).ToArray());
         this.TheThing = theThing;
@@ -64,7 +64,7 @@ public class UserCommand
             string arg = StringFormating.RemoveQuotes(input[i]); //TODO: dat zeuch mal verschieben un duie Argument init
             if (arg.StartsWith("-"))
             {
-                
+
                 arg = arg.Substring(1);
                 //Sumcommand handeling
 
@@ -81,7 +81,7 @@ public class UserCommand
                     }
                     else
                     {
-                        if(subCommand.TakesParameter == true)
+                        if (subCommand.TakesParameter == true)
                             throw new($"{subCommand.Name} takes parameters, but 0 are given");
                         CArgument cArgument = new(subCommand);
                         arguments.Add(cArgument);
@@ -99,7 +99,7 @@ public class UserCommand
         }
         return arguments.ToArray();
     }
-    public static bool TryParse(string input, out UserCommand? command,out string? exeption)
+    public static bool TryParse(string input, out UserCommand? command, out string? exeption)
     {
         try
         {

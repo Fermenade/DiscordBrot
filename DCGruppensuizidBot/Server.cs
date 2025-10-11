@@ -1,12 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using DGruppensuizidBot.AlphabetThread;
 
 namespace DGruppensuizidBot
 {
@@ -29,7 +23,7 @@ namespace DGruppensuizidBot
                 }
             }
         }
-        public void MessageUpdated(IMessage previousMessage, IMessage currentMessage,ISocketMessageChannel channel)
+        public void MessageUpdated(IMessage previousMessage, IMessage currentMessage, ISocketMessageChannel channel)
         {
             foreach (var VARIABLE in messageChannels)
             {

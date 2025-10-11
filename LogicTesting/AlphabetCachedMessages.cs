@@ -1,6 +1,3 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-
 namespace DGruppensuizidBot.AlphabetThread;
 
 public class AlphabetCachedMessages<T, TDataype> where T : ICombination<TDataype>
@@ -11,23 +8,23 @@ public class AlphabetCachedMessages<T, TDataype> where T : ICombination<TDataype
 
         collection = new MessageCache<T, TDataype>([new AlphabetEntry<T, TDataype>(e, e.GetCombination())]);
     }
-    public bool Add(AlphabetMessage<T,TDataype> message)
+    public bool Add(AlphabetMessage<T, TDataype> message)
     {
         return collection.Add(message);
     }
-    private MessageCache<T,TDataype> collection;
+    private MessageCache<T, TDataype> collection;
     private List<AlphabetEntry<T, TDataype>> GetBotUpToDate()
     {
-        List<AlphabetMessage<T,TDataype>> messages = new List<AlphabetMessage<T, TDataype>>();
+        List<AlphabetMessage<T, TDataype>> messages = new List<AlphabetMessage<T, TDataype>>();
         Streak<TDataype> CurrentStreak = new();
         Streak<TDataype> TopStreak = new();
-        foreach (AlphabetMessage<T,TDataype> msg in messages)
+        foreach (AlphabetMessage<T, TDataype> msg in messages)
         {
             if (msg.GetCombination() == null)
             {
                 CurrentStreak.streak = 0;
             }
-            else if(CurrentStreak.currentCombination != msg.GetCombination().GetCombo(-1))
+            else if (CurrentStreak.currentCombination != msg.GetCombination().GetCombo(-1))
             {
                 CurrentStreak.streak = 0;
                 CurrentStreak.currentCombination = msg.GetCombination(); //Cannot Convert

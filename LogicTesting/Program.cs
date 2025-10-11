@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using DGruppensuizidBot.AlphabetThread;
+﻿using DGruppensuizidBot.AlphabetThread;
 
 namespace LogicTesting
 {
