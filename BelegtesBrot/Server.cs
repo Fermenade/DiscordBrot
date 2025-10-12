@@ -48,21 +48,11 @@ namespace BelegtesBrot
 
         }
 
-        void AddCannel()
+        void AddCannel() //TODO: link this logic with a register command
         {
             LinkedChannels linkedChannels = new LinkedChannels();
-        }
 
-        class LinkedChannels
-        {
-            public readonly IGuildChannel ChannelId;
-            public readonly string Channel;
-
-            public LinkedChannels(IGuildChannel channelId, IServerMessageChannel channel)
-            {
-                ChannelId = channelId;
-                Channel = channel.GetType().FullName;
-            }
+            
         }
         public void MessageReceived(IMessage message)
         {

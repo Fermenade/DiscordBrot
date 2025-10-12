@@ -10,7 +10,6 @@ namespace DGruppensuizidBot.BMC_Server;
 
 public class CoreMCServer
 {
-    protected 
     protected bool ServerOnline = false;
 
     protected PlayerManager _playerManager = new();
