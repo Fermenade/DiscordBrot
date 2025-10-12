@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using BelegtesBrot.Channels;
 using Discord;
 using Discord.WebSocket;
@@ -35,25 +36,28 @@ namespace BelegtesBrot
             string e = File.ReadAllText(serverGuildFile);
             List<LinkedChannels> x = JsonSerializer.Deserialize<List<LinkedChannels>>(e);
 
-            foreach (LinkedChannels VARIABLE in x)
+            foreach (LinkedChannels linkedChannel in x)
             {
-                Type loadedType = Type.GetType(VARIABLE.Channel, throwOnError: true);
+                Type loadedType = Type.GetType(linkedChannel.Channel, throwOnError: true);
+                if (loadedType == null)
+                {
+                    throw new Exception($"Unknown type: {linkedChannel.Channel}");
+                }
 
-                // b) Using a constructor with arguments
+                // Using a constructor with arguments
                 IServerMessageChannel instance = (IServerMessageChannel)Activator.CreateInstance(
                     loadedType,
-                    new {VARIABLE.ChannelId}); // arguments must match a ctor signature
+                    new {linkedChannel.ChannelId}); // arguments must match a ctor signature
                 MessageChannels.Add(instance);
             }
 
         }
 
-        void AddCannel() //TODO: link this logic with a register command
+        void AddCannel(SocketTextChannel channel, IServerMessageChannel messageChannel) //TODO: link this logic with a register command
         {
-            LinkedChannels linkedChannels = new LinkedChannels();
-
-            
+            LinkedChannels linkedChannels = new LinkedChannels(channel,messageChannel);
         }
+
         public Task MessageReceived(IMessage message)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)
@@ -63,8 +67,56 @@ namespace BelegtesBrot
                     return VARIABLE.MessageReceived(message);
                 }
             }
+
             return Task.CompletedTask;
         }
+
+        public static T ByteToType<T>(BinaryReader reader) // TODO: Look at me
+        {
+            byte[] bytes = reader.ReadBytes(Marshal.SizeOf(typeof(T)));
+
+            GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            T theStructure = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+            handle.Free();
+
+            return theStructure;
+        }
+
+        static T ReadStructFromBinaryFile<T>(string filePath) where T : struct // TODO: Look at me
+        {
+            byte[] bytes = File.ReadAllBytes(filePath);
+
+            IntPtr ptr = Marshal.AllocHGlobal(bytes.Length);
+            try
+            {
+                Marshal.Copy(bytes, 0, ptr, bytes.Length);
+                return Marshal.PtrToStructure<T>(ptr);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
+        }
+
+        static void WriteStructToBinaryFile<T>(T structure, string filePath) where T : struct // TODO: Look at me
+        {
+            int size = Marshal.SizeOf(structure);
+            byte[] bytes = new byte[size];
+
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            try
+            {
+                Marshal.StructureToPtr(structure, ptr, true);
+                Marshal.Copy(ptr, bytes, 0, size);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
+
+            File.WriteAllBytes(filePath, bytes);
+        }
+
         public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage, ISocketMessageChannel channel)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)

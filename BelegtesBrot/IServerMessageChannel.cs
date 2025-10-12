@@ -1,8 +1,9 @@
 using Discord;
+using Discord.WebSocket;
 
 namespace BelegtesBrot;
 
 internal interface IServerMessageChannel : IBaseCom
 {
-    public IGuildChannel Channel { get; }
+    public SocketTextChannel Channel { get; }
 }

@@ -7,12 +7,20 @@ namespace BelegtesBrot.Channels
 {
     internal class AlphabetMode : IServerMessageChannel
     {
-        public ChannelType ChannelType { get; }
         public string Name { get; }
-        public IGuildChannel Channel { get; }
+        public SocketTextChannel Channel => channel;
+
 
         private AlphabetCachedMessages<Combination, char> CachedMessages =
             new AlphabetCachedMessages<Combination, char>();
+
+        private readonly SocketTextChannel channel;
+
+        public AlphabetMode(SocketTextChannel channel)
+        {
+            this.channel = channel;
+        }
+
         public Task MessageReceived(IMessage msg)
         {
             AlphabetMessage<Combination,char> message = new(msg);
