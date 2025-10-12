@@ -1,6 +1,9 @@
 ﻿using System.Reflection;
+using BelegtesBrot.Channels;
 using Discord;
 using Discord.WebSocket;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace BelegtesBrot
 {
@@ -12,16 +15,55 @@ namespace BelegtesBrot
 
     }
 
-    internal interface IBaseCom
-    {
-        public void MessageReceived(IMessage message);
-        public void MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage, ISocketMessageChannel channel);
-        public void MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessage, ulong> message1);
-    }
-    internal class Server(IGuild guild) : IServer
+    internal class Server : IServer
     {
         public IGuild Guild => guild;
-        public List<IServerMessageChannel> MessageChannels => getMessageChannels();
+
+        private readonly IGuild guild;
+        public List<IServerMessageChannel> MessageChannels => new();
+
+        public Server(IGuild guild)
+        {
+            this.guild = guild;
+
+        }
+
+        private void ReadConnectedChannels()
+        {
+            string serverGuildFile = $"{Guild.Id}.json";
+            if (!File.Exists(serverGuildFile))return;
+            string e = File.ReadAllText(serverGuildFile);
+            List<LinkedChannels> x = JsonSerializer.Deserialize<List<LinkedChannels>>(e);
+
+            foreach (LinkedChannels VARIABLE in x)
+            {
+                Type loadedType = Type.GetType(VARIABLE.Channel, throwOnError: true);
+
+                // b) Using a constructor with arguments
+                IServerMessageChannel instance = (IServerMessageChannel)Activator.CreateInstance(
+                    loadedType,
+                    new {VARIABLE.ChannelId}); // arguments must match a ctor signature
+                MessageChannels.Add(instance);
+            }
+
+        }
+
+        void AddCannel()
+        {
+            LinkedChannels linkedChannels = new LinkedChannels();
+        }
+
+        class LinkedChannels
+        {
+            public readonly IGuildChannel ChannelId;
+            public readonly string Channel;
+
+            public LinkedChannels(IGuildChannel channelId, IServerMessageChannel channel)
+            {
+                ChannelId = channelId;
+                Channel = channel.GetType().FullName;
+            }
+        }
         public void MessageReceived(IMessage message)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)
@@ -42,36 +84,13 @@ namespace BelegtesBrot
                 }
             }
         }
-
-        public void MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessage, ulong> message1)
+        public void MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)
             {
-                if (VARIABLE.Channel.Id == message.Channel.Id)
+                if (VARIABLE.Channel.Id == channel.Value.Id)
                 {
-                    VARIABLE.MessageDeleted(message);
-                }
-            }
-        }
-
-        private List<IServerMessageChannel> getMessageChannels()
-        {
-            return getInterfaceInheritingClasses<IServerMessageChannel>();
-        }
-        List<T> getInterfaceInheritingClasses<T>()
-        {
-            List<T> channelList = new List<T>();
-
-            IEnumerable<Type> types = Assembly.GetExecutingAssembly()
-                .GetTypes();
-
-            foreach (Type commandType in types)
-            {
-                if (!typeof(T).IsAssignableFrom(commandType)) continue;
-
-                if (Activator.CreateInstance(commandType) is T commandInstance)
-                {
-                    channelList.Add(commandInstance);
+                    VARIABLE.MessageDeleted(message, channel);
                 }
             }
         }
