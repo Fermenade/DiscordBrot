@@ -14,6 +14,7 @@ public class AlphabetMessage<T, TDatatype>(IMessage message) where T : ICombinat
     public Task AddReactionAsync(IEmote emote, RequestOptions options = null) => message.AddReactionAsync(emote, options);
     public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null) => message.RemoveReactionAsync(emote, user, options);
     public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null) => message.RemoveReactionAsync(emote, userId, options);
+    public Task DeleteAsync() => message.DeleteAsync();
     public ICombination<T, TDatatype>? GetCombination()
     {
         return T.GetCombination(Content);

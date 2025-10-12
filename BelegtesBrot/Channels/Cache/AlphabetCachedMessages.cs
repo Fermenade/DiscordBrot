@@ -5,9 +5,8 @@ public class AlphabetCachedMessages<T, TDataype> where T : ICombination<T, TData
     private MessageCache<T, TDataype> collection;
     public AlphabetCachedMessages()
     {
-        AlphabetMessage<T, TDataype> e = new AlphabetMessage<T, TDataype>("ZZZ");
-
-        collection = new MessageCache<T, TDataype>([new AlphabetEntry<T, TDataype>(e, e.GetCombination())]);
+        var e = GetBotUpToDate();
+        collection = new MessageCache<T, TDataype>(e);
     }
     public FailureCase Add(AlphabetMessage<T, TDataype> message)
     {

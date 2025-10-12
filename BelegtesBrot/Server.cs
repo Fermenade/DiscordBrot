@@ -54,35 +54,38 @@ namespace BelegtesBrot
 
             
         }
-        public void MessageReceived(IMessage message)
+        public Task MessageReceived(IMessage message)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)
             {
                 if (VARIABLE.Channel.Id == message.Channel.Id)
                 {
-                    VARIABLE.MessageReceived(message);
+                    return VARIABLE.MessageReceived(message);
                 }
             }
+            return Task.CompletedTask;
         }
-        public void MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage, ISocketMessageChannel channel)
+        public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage, ISocketMessageChannel channel)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)
             {
                 if (VARIABLE.Channel.Id == channel.Id)
                 {
-                    VARIABLE.MessageUpdated(previousMessage, currentMessage, channel);
+                    return VARIABLE.MessageUpdated(previousMessage, currentMessage, channel);
                 }
             }
+            return Task.CompletedTask;
         }
-        public void MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
+        public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
             foreach (IServerMessageChannel VARIABLE in MessageChannels)
             {
                 if (VARIABLE.Channel.Id == channel.Value.Id)
                 {
-                    VARIABLE.MessageDeleted(message, channel);
+                   return VARIABLE.MessageDeleted(message, channel);
                 }
             }
+            return Task.CompletedTask;
         }
     }
 }
