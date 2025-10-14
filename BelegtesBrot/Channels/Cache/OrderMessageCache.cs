@@ -1,9 +1,9 @@
 namespace BelegtesBrot.Channels.Cache;
 
-internal class MessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntry<T, TDataype>> where T : ICombination<T, TDataype>
+internal class OrderMessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntry<T, TDataype>> where T : ICombination<T, TDataype>
 {
 
-    public MessageCache(List<AlphabetEntry<T, TDataype>> list) : base(list, 100)
+    public OrderMessageCache(List<AlphabetEntry<T, TDataype>> list) : base(list, 100)
     { }
     public FailureCase Add(AlphabetMessage<T, TDataype> message)
     {
@@ -19,7 +19,7 @@ internal class MessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntry<T, 
     public FailureCase Update(AlphabetMessage<T, TDataype> previous, AlphabetMessage<T, TDataype> current)
     {
         (int Index, AlphabetEntry<T, TDataype> Item)? found = GetItem(previous);
-        (int Index, AlphabetEntry<T, TDataype> Item)? foundPrevious = found.Value;
+        (int Index, AlphabetEntry<T, TDataype> Item)? foundPrevious = found;
         if (found.HasValue) // TODO: FIXME - why am I always true?
         {
             found.Value.Item.Update(current);

@@ -1,12 +1,12 @@
 namespace BelegtesBrot.Channels.Cache;
 
-public class AlphabetCachedMessages<T, TDataype> where T : ICombination<T, TDataype>
+public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype>
 {
-    private MessageCache<T, TDataype> collection;
-    public AlphabetCachedMessages()
+    private OrderMessageCache<T, TDataype> collection;
+    public OrderCachedMessages()
     {
         var e = GetBotUpToDate();
-        collection = new MessageCache<T, TDataype>(e);
+        collection = new OrderMessageCache<T, TDataype>(e);
     }
     public FailureCase Add(AlphabetMessage<T, TDataype> message)
     {

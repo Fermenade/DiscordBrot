@@ -11,8 +11,8 @@ namespace BelegtesBrot.Channels
         public SocketTextChannel Channel => channel;
 
 
-        private AlphabetCachedMessages<Combination, char> CachedMessages =
-            new AlphabetCachedMessages<Combination, char>();
+        private OrderCachedMessages<Combination, char> _orderCachedMessages =
+            new OrderCachedMessages<Combination, char>();
 
         private readonly SocketTextChannel channel;
 
@@ -24,7 +24,7 @@ namespace BelegtesBrot.Channels
         public Task MessageReceived(IMessage msg)
         {
             AlphabetMessage<Combination,char> message = new(msg);
-            FailureCase failure = CachedMessages.Add(message);
+            FailureCase failure = _orderCachedMessages.Add(message);
             
             switch (failure)
             {
@@ -37,6 +37,8 @@ namespace BelegtesBrot.Channels
                 case FailureCase.None:
                     break;
             }
+
+            return Task.CompletedTask;
         }
 
 
@@ -45,7 +47,7 @@ namespace BelegtesBrot.Channels
             AlphabetMessage<Combination, char> previousMessage = new(preMsg.Value);
             AlphabetMessage<Combination, char> currentMessage = new(curMsg);
             
-            FailureCase failure = CachedMessages.Update(previousMessage, currentMessage);
+            FailureCase failure = _orderCachedMessages.Update(previousMessage, currentMessage);
 
             switch (failure)
             {
@@ -56,12 +58,13 @@ namespace BelegtesBrot.Channels
                     RemoveFishReactionAsync(currentMessage);
                     break;
             }
+            return Task.CompletedTask;
         }
         public Task MessageDeleted(Cacheable<IMessage, ulong> msg, Cacheable<IMessageChannel, ulong> channel)
         {
             AlphabetMessage<Combination, char> deletedMessage = new(msg.Value);
-            FailureCase failure = CachedMessages.Delete(deletedMessage);
-
+            FailureCase failure = _orderCachedMessages.Delete(deletedMessage);
+            return Task.CompletedTask;
         }
         private void AddFishReactionToMessage(AlphabetMessage<Combination, char> message)
         {
