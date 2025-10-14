@@ -1,4 +1,4 @@
-namespace DGruppensuizidBot.BMC_Server;
+namespace BelegtesBrot.BMC_Server;
 
 public class PlayerManager
 {

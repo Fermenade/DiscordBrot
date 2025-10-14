@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace BelegtesBrot
 {
-    static class Info
+    public class Info
     {
-        private static string InfoFolder = "";
+        public const string InfoFolder = "serverstuff";
         static void WriteToInfo()
         {
+
         }
     }
 }

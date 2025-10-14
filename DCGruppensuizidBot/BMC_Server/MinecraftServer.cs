@@ -10,6 +10,7 @@ namespace DGruppensuizidBot.BMC_Server;
 
 public class CoreMCServer
 {
+    private static string serverName = "BMCServer";
     protected SocketUser? UserThatStartedServer;
     protected Process? _process = null;
     protected bool ServerOnline = false;

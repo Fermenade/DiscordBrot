@@ -1,8 +1,8 @@
-using Newtonsoft.Json;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace DGruppensuizidBot.BMC_Server;
+namespace BelegtesBrot.BMC_Server;
 
 public class HallOfFame
 {
