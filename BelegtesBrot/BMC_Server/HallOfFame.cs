@@ -8,19 +8,17 @@ public class HallOfFame
 {
     /*TODO: fix this error */
 
-    private static string FilePath = $"{Serverstuff.PrefixPath}scoreboard.json";
+    private static string FilePath = $"{Info.InfoFolder}/scoreboard.json";
     private List<ScoreEntry> entries;
     //Warum ist dieser parameter optional??
-    public HallOfFame([Optional] TimeSpan time, string[]? description = null)
+    public HallOfFame(TimeSpan time, string[] description)
     {
         entries = LoadEntries();
-        if (description != null)
-        {
-            AddEntry(time, description);
-        }
+
+        AddEntry(time, description);
     }
 
-    public void AddEntry(TimeSpan time, string[] description)
+    private void AddEntry(TimeSpan time, string[] description)
     {
         // Füge neuen Eintrag hinzu, wenn er länger ist als der kürzeste Eintrag
         if (entries.Count < 5 || time > entries.Min(e => e.Time))
@@ -39,9 +37,9 @@ public class HallOfFame
         }
     }
 
-    public List<ScoreEntry> GetEntries()
+    public static IReadOnlyCollection<ScoreEntry> GetEntries()
     {
-        return entries;
+        return LoadEntries();
     }
 
     private void SaveEntries()
@@ -50,7 +48,7 @@ public class HallOfFame
         JsonSerializer.SerializeAsync(fs, entries); //Sync oder Async
     }
 
-    private List<ScoreEntry> LoadEntries()
+    private static List<ScoreEntry> LoadEntries()
     {
         if (File.Exists(FilePath))
         {

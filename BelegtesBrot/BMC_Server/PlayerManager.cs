@@ -2,11 +2,16 @@ namespace BelegtesBrot.BMC_Server;
 
 public class PlayerManager
 {
+    public PlayerManager(int capacity)
+    {
+        _currentOnlinePlayers = new HashSet<string>(capacity);
+        _allPlayers = new HashSet<string>(capacity);
+    }
     // Liste der aktuell online Spieler
-    private HashSet<string> _currentOnlinePlayers = new(10);
+    private readonly HashSet<string> _currentOnlinePlayers;
 
     // Liste der insgesamt online gewesenen Spieler
-    private HashSet<string> _allPlayers = new(10); //Maybe die Maxplayeranzahl dynamisch aus der server config auslesen
+    private readonly HashSet<string> _allPlayers;
     // Spieler anmelden
     public void PlayerLogin(string playerName)
     {
@@ -20,20 +25,29 @@ public class PlayerManager
         }
     }
 
-    // Spieler abmelden
+    /// <summary>
+    /// Remove a player from current online players
+    /// </summary>
+    /// <param name="playerName">The player name of the player</param>
     public void PlayerLogout(string playerName)
     {
         _currentOnlinePlayers.Remove(playerName);
     }
 
-    // Aktuell online Spieler abrufen
-    public IEnumerable<string> GetCurrentOnlinePlayers()
+    /// <summary>
+    /// Get all players that are currently online.
+    /// </summary>
+    /// <returns>Collection of all player names</returns>
+    public IReadOnlyCollection<string> GetCurrentOnlinePlayers()
     {
         return _currentOnlinePlayers;
     }
 
-    // Insgesamt online gewesene Spieler abrufen
-    public IEnumerable<string> GetAllPlayers()
+    /// <summary>
+     /// Get all players that where online during this session.
+    /// </summary>
+    /// <returns>Collection of all player names</returns>
+    public IReadOnlyCollection<string> GetAllPlayers()
     {
         return _allPlayers;
     }
