@@ -1,5 +1,3 @@
-using BelegtesBrot;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -73,6 +71,7 @@ public class HigherMC
 {
     private MCServer mcServer = MCServer.GetMcServer();
     private PlayerManager PlayerManager;
+    private System.Timers.Timer checkForOnlinePlayerTimer = new();
     private ServerTimeMeasure ServerTimeMeasure = new ServerTimeMeasure();
 
     public ServerState ServerState
@@ -80,7 +79,7 @@ public class HigherMC
         get;
         private set;
     }
-    public event EmptyHandler<HigherMC> ServerReady; 
+    public event EmptyHandler<HigherMC> ServerReady;
     void StopServer(object? obj, EventArgs e)
     {
         WriteSomethingToServer("stop");
@@ -180,7 +179,6 @@ public class HigherMC
 
         return optionName;
     }
-    private System.Timers.Timer checkForOnlinePlayerTimer = new();
     private void StartServerstopCountDownTimer()
     {
         checkForOnlinePlayerTimer.Start();

@@ -23,9 +23,9 @@ namespace BelegtesBrot.Channels
 
         public Task MessageReceived(IMessage msg)
         {
-            AlphabetMessage<Combination,char> message = new(msg);
+            AlphabetMessage<Combination, char> message = new(msg);
             FailureCase failure = _orderCachedMessages.Add(message);
-            
+
             switch (failure)
             {
                 case FailureCase.DuplicateAuthor or FailureCase.NotCombination:
@@ -46,7 +46,7 @@ namespace BelegtesBrot.Channels
         {
             AlphabetMessage<Combination, char> previousMessage = new(preMsg.Value);
             AlphabetMessage<Combination, char> currentMessage = new(curMsg);
-            
+
             FailureCase failure = _orderCachedMessages.Update(previousMessage, currentMessage);
 
             switch (failure)

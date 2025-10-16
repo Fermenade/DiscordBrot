@@ -1,6 +1,4 @@
-﻿using DGruppensuizidBot.AlphabetThread;
-
-namespace LogicTesting
+﻿namespace LogicTesting
 {
     internal class Program
     {

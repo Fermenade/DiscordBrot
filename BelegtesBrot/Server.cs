@@ -1,9 +1,6 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-using BelegtesBrot.Channels;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
-using Newtonsoft.Json;
+using System.Runtime.InteropServices;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace BelegtesBrot
@@ -32,7 +29,7 @@ namespace BelegtesBrot
         private void ReadConnectedChannels()
         {
             string serverGuildFile = $"{Guild.Id}.json";
-            if (!File.Exists(serverGuildFile))return;
+            if (!File.Exists(serverGuildFile)) return;
             string e = File.ReadAllText(serverGuildFile);
             List<LinkedChannels> x = JsonSerializer.Deserialize<List<LinkedChannels>>(e);
 
@@ -47,7 +44,7 @@ namespace BelegtesBrot
                 // Using a constructor with arguments
                 IServerMessageChannel instance = (IServerMessageChannel)Activator.CreateInstance(
                     loadedType,
-                    new {linkedChannel.ChannelId}); // arguments must match a ctor signature
+                    new { linkedChannel.ChannelId }); // arguments must match a ctor signature
                 MessageChannels.Add(instance);
             }
 
@@ -55,7 +52,7 @@ namespace BelegtesBrot
 
         void AddCannel(SocketTextChannel channel, IServerMessageChannel messageChannel) //TODO: link this logic with a register command
         {
-            LinkedChannels linkedChannels = new LinkedChannels(channel,messageChannel);
+            LinkedChannels linkedChannels = new LinkedChannels(channel, messageChannel);
         }
 
         public Task MessageReceived(IMessage message)
@@ -134,7 +131,7 @@ namespace BelegtesBrot
             {
                 if (VARIABLE.Channel.Id == channel.Value.Id)
                 {
-                   return VARIABLE.MessageDeleted(message, channel);
+                    return VARIABLE.MessageDeleted(message, channel);
                 }
             }
             return Task.CompletedTask;

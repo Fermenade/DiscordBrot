@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 
 namespace BelegtesBrot
@@ -28,7 +27,7 @@ namespace BelegtesBrot
                 {
                     if (socketGuild.Guild.Id == channel.Guild.Id)
                     {
-                       return socketGuild.MessageReceived(message);
+                        return socketGuild.MessageReceived(message);
                     }
                 }
             }

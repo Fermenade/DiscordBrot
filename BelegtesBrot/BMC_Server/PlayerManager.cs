@@ -44,7 +44,7 @@ public class PlayerManager
     }
 
     /// <summary>
-     /// Get all players that where online during this session.
+    /// Get all players that where online during this session.
     /// </summary>
     /// <returns>Collection of all player names</returns>
     public IReadOnlyCollection<string> GetAllPlayers()
