@@ -240,7 +240,7 @@ partial class Commands
             throw new NotImplementedException();
         }
 
-        public class Start : ICommand //TODO: irgenwie hab ich da müll gebaut, die args werden nicht aufgerufen.
+        public class Start : ICommand //TODO: irgendwie hab ich da müll gebaut, die args werden nicht aufgerufen.
         {
             public string Name => "p";
             public string Description => "Power server";

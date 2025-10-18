@@ -5,7 +5,6 @@ namespace BelegtesBrot.BMC_Server;
 
 public class HallOfFame
 {
-    /*TODO: fix this error */
 
     private static string FilePath = $"{Info.InfoFolder}/scoreboard.json";
     private List<ScoreEntry> entries;

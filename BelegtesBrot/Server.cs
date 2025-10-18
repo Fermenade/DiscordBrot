@@ -50,7 +50,7 @@ namespace BelegtesBrot
 
         }
 
-        void AddCannel(SocketTextChannel channel, IServerMessageChannel messageChannel) //TODO: link this logic with a register command
+        void AddCannel(SocketTextChannel channel, IServerMessageChannel messageChannel) //TODO: link this logic with a register optionArgument
         {
             LinkedChannels linkedChannels = new LinkedChannels(channel, messageChannel);
         }
