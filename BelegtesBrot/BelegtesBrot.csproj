@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\command-line-api\src\CommandLine\CommandLine.csproj" />
+    <ProjectReference Include="..\..\command-line-api\src\System.CommandLine\System.CommandLine.csproj" />
   </ItemGroup>
 
 </Project>

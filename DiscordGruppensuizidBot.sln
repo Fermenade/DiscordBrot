@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DGruppensuizidBot", "DCGrup
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BelegtesBrot", "BelegtesBrot\BelegtesBrot.csproj", "{83F9E526-B0FA-45FF-A27D-650DF66D0919}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandLine", "..\..\command-line-api\src\CommandLine\CommandLine.csproj", "{1EDAB650-EEA8-4185-B719-FB9E508365F0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.CommandLine", "..\command-line-api\src\System.CommandLine\System.CommandLine.csproj", "{44FB0F20-7B5C-481A-A33E-69C0030F0B6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{83F9E526-B0FA-45FF-A27D-650DF66D0919}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83F9E526-B0FA-45FF-A27D-650DF66D0919}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83F9E526-B0FA-45FF-A27D-650DF66D0919}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1EDAB650-EEA8-4185-B719-FB9E508365F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1EDAB650-EEA8-4185-B719-FB9E508365F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1EDAB650-EEA8-4185-B719-FB9E508365F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1EDAB650-EEA8-4185-B719-FB9E508365F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44FB0F20-7B5C-481A-A33E-69C0030F0B6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44FB0F20-7B5C-481A-A33E-69C0030F0B6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44FB0F20-7B5C-481A-A33E-69C0030F0B6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44FB0F20-7B5C-481A-A33E-69C0030F0B6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
