@@ -8,6 +8,6 @@ public class CommandHandler
     public void ReceivedMessage(IMessage message)
     {
         UserCommand userCommand = new UserCommand(message);
-        commands.root.Parse();
+        commands.root.Parse(userCommand);
     }
 }
