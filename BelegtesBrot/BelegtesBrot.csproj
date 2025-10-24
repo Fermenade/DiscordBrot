@@ -11,7 +11,10 @@
     <PackageReference Include="Discord.Net.Core" Version="3.18.0" />
     <PackageReference Include="Discord.Net.Rest" Version="3.18.0" />
     <PackageReference Include="Discord.Net.WebSocket" Version="3.18.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-rc.2.25502.107" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\command-line-api\src\CommandLine\CommandLine.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@ namespace BelegtesBrot.BMC_Server;
 public class MCServer
 {
     private static MCServer? mcServer;
-    private const string ServerPath = $"{Info.InfoFolder}/MinecraftServer";
+    public string ServerPath = $"{Info.InfoFolder}/MinecraftServer";
     public event EventHandler<DataReceivedEventArgs> ReceivedData; // Custom event
     private Process _process;
     public bool Running => !_process.HasExited;
@@ -16,10 +16,6 @@ public class MCServer
     private ProcessStartInfo processInfo = new ProcessStartInfo
     {
         FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" : @"/bin/bash",
-
-        Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? $"-ExecutionPolicy Bypass -File \"{ServerPath}/start.ps1\""
-            : $"{ServerPath}/start.sh",
         RedirectStandardOutput = true,
         RedirectStandardInput = true,
         RedirectStandardError = true,
@@ -28,6 +24,9 @@ public class MCServer
     };
     private MCServer()
     {
+        processInfo.Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? $"-ExecutionPolicy Bypass -File \"{ServerPath}/start.ps1\""
+            : $"{ServerPath}/start.sh";
         _process = new Process()
         {
             StartInfo = processInfo,
@@ -41,6 +40,7 @@ public class MCServer
 
         return mcServer = new MCServer();
     }
+    
     public void StartProcess()
     {
         _process.Start();
@@ -55,7 +55,6 @@ public class MCServer
     }
     private void OnProcessDataReceived(object sender, DataReceivedEventArgs e)
     {
-        // Potentially modify/filter/process the data here if needed.
         ReceivedData?.Invoke(this, e);
     }
 }
@@ -66,21 +65,20 @@ public enum ServerState
     Offline
 }
 
-public delegate void EmptyHandler<T>();
-public class HigherMC
+public delegate void EmptyHandler();
+public class HigherMc
 {
     private MCServer mcServer = MCServer.GetMcServer();
     private PlayerManager PlayerManager;
     private System.Timers.Timer checkForOnlinePlayerTimer = new();
     private ServerTimeMeasure ServerTimeMeasure = new ServerTimeMeasure();
     private MCReceivedMessage McReceived;
-
     public ServerState ServerState
     {
         get;
         private set;
     }
-    public event EmptyHandler<HigherMC> ServerReady;
+    public event EmptyHandler ServerReady;
     void StopServer(object? obj, EventArgs e)
     {
         WriteSomethingToServer("stop");
@@ -91,7 +89,7 @@ public class HigherMC
         mcServer.WriteToProcess(new StringBuilder(str));
     }
 
-    public HigherMC()
+    public HigherMc()
     {
         McReceived = new MCReceivedMessage(mcServer);
         McReceived.PlayerConnected += OnPlayerConnected;
@@ -99,57 +97,61 @@ public class HigherMC
         McReceived.Ready += OnServerReady;
         McReceived.ShutdownComplete += OnServerStopped;
 
-        mcServer.StartProcess();
         ServerState = ServerState.Booting;
         PlayerManager = new PlayerManager(Convert.ToInt16(GetServerInformation("max-players")));
+
+        _configFile = $"{mcServer.ServerPath}/config.json";
+        checkForOnlinePlayerTimer.Elapsed += StopServer;
     }
 
+    public void StartServer()
+    {
+        mcServer.StartProcess();
+    }
     private void OnPlayerConnected(object? sender, PlayerEventArgs playerEventArgs)
     {
-        //Der Server soll gleich in den shutdown timer laufen lassen, damit falls keine person joinen sollte der server nicht online bleibt
-        //leuten ne sperre verpassen, die den server hochfahren ohne das dieser benutzt wird.
         PlayerManager.PlayerLogin(playerEventArgs.Playername);
+        
+        checkForOnlinePlayerTimer.Stop();
     }
     private void OnPlayerDisconnected(object? sender, PlayerEventArgs playerEventArgs)
     {
         PlayerManager.PlayerLogout(playerEventArgs.Playername);
+        if (!PlayerManager.GetCurrentOnlinePlayers().Any())
+        {
+            checkForOnlinePlayerTimer.Start();
+        }
     }
     private void OnServerReady(object? sender, EventArgs args)
     {
         ServerState = ServerState.Online;
         ServerTimeMeasure.StartTime = DateTime.Now;
+        
+        checkForOnlinePlayerTimer.Start();
     }
     private void OnServerStopped(object? sender, EventArgs args)
     {
         ServerState = ServerState.Offline;
 
-        //See if Run comes into hall of fame
-        HallOfFame s = new HallOfFame(ServerTimeMeasure.GetTimeTillnow(),
+        HallOfFame.AddEntry(ServerTimeMeasure.GetTimeTillnow(),
             PlayerManager.GetAllPlayers().OrderBy(x => x).ToArray());
     }
 
-    private const string _configFile = "";
+    private readonly string _configFile;
     string GetServerInformation(string optionName)
     {
-        using (StreamReader sr = new StreamReader())
+        using StreamReader sr = new StreamReader(_configFile);
+        while (!sr.EndOfStream)
         {
-            while (!sr.EndOfStream)
+            string s = sr.ReadLine();
+            if (s.StartsWith(optionName))
             {
-                string s = sr.ReadLine();
-                if (s.StartsWith(optionName))
-                {
-                    s = s.Split("=")[1].Trim();
-                    return s;
-                }
+                s = s.Split("=")[1].Trim();
+                return s;
             }
         }
 
         return optionName;
-    }
-    private void StartServerstopCountDownTimer()
-    {
-        checkForOnlinePlayerTimer.Start();
-        checkForOnlinePlayerTimer.Elapsed += StopServer;
     }
 }
 
