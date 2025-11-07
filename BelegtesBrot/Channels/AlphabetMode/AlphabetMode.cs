@@ -5,6 +5,7 @@ using Discord.WebSocket;
 
 namespace BelegtesBrot.Channels
 {
+    [MessageChannelHandler]
     internal class AlphabetMode : IServerMessageChannel
     {
         public string Name { get; }

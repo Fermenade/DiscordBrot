@@ -3,7 +3,7 @@ using Discord.WebSocket;
 
 namespace BelegtesBrot;
 
-internal interface IBaseCom
+public interface IBaseCom
 {
     public Task MessageReceived(IMessage message);
     public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage, ISocketMessageChannel channel);
