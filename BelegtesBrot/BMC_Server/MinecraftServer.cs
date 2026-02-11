@@ -1,149 +1,94 @@
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
+using Timer = System.Timers.Timer;
 
 namespace BelegtesBrot.BMC_Server;
 
-public class MCServer
+internal class MinecraftServer : Server
 {
-    private static MCServer? mcServer;
-    public string ServerPath = $"{Info.InfoFolder}/MinecraftServer";
-    public event EventHandler<DataReceivedEventArgs> ReceivedData; // Custom event
-    private Process _process;
-    public bool Running => !_process.HasExited;
+    private readonly Timer _checkForOnlinePlayerTimer = new();
 
-    private ProcessStartInfo processInfo = new ProcessStartInfo
-    {
-        FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell.exe" : @"/bin/bash",
-        RedirectStandardOutput = true,
-        RedirectStandardInput = true,
-        RedirectStandardError = true,
-        UseShellExecute = false,
-        CreateNoWindow = true,
-    };
-    private MCServer()
-    {
-        processInfo.Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? $"-ExecutionPolicy Bypass -File \"{ServerPath}/start.ps1\""
-            : $"{ServerPath}/start.sh";
-        _process = new Process()
-        {
-            StartInfo = processInfo,
-        };
-        _process.OutputDataReceived += OnProcessDataReceived;
-        mcServer = this;
-    }
-    public static MCServer GetMcServer()
-    {
-        if (mcServer != null) return mcServer;
+    private readonly FileInfo _configFile;
+    public readonly PlayerManager _playerManager;
+    public readonly MCReceivedMessage McReceived;
+    public ServerTimeMeasure? _serverTimeMeasure;
+    public HallOfFame hallOfFame;
 
-        return mcServer = new MCServer();
-    }
-    
-    public void StartProcess()
+    public MinecraftServer(DirectoryInfo startupFolder) :
+        base(
+            OperatingSystem.IsWindows() ? "powershell.exe" : @"/bin/bash",
+            Path.Combine(startupFolder.FullName, OperatingSystem.IsWindows() ? "start.ps1" : "start.sh")
+        )
     {
-        _process.Start();
-    }
-
-    public async void WriteToProcess(StringBuilder stringBuilder)
-    {
-        if (Running)
-        {
-            await _process.StandardInput.WriteLineAsync(stringBuilder);
-        }
-    }
-    private void OnProcessDataReceived(object sender, DataReceivedEventArgs e)
-    {
-        ReceivedData?.Invoke(this, e);
-    }
-}
-public enum ServerState
-{
-    Online,
-    Booting,
-    Offline
-}
-
-public delegate void EmptyHandler();
-public class HigherMc
-{
-    private MCServer mcServer = MCServer.GetMcServer();
-    private PlayerManager PlayerManager;
-    private System.Timers.Timer checkForOnlinePlayerTimer = new();
-    private ServerTimeMeasure ServerTimeMeasure = new ServerTimeMeasure();
-    private MCReceivedMessage McReceived;
-    public ServerState ServerState
-    {
-        get;
-        private set;
-    }
-    public event EmptyHandler ServerReady;
-    void StopServer(object? obj, EventArgs e)
-    {
-        WriteSomethingToServer("stop");
-    }
-
-    void WriteSomethingToServer(string str)
-    {
-        mcServer.WriteToProcess(new StringBuilder(str));
-    }
-
-    public HigherMc()
-    {
-        McReceived = new MCReceivedMessage(mcServer);
+        McReceived = new MCReceivedMessage(this);
         McReceived.PlayerConnected += OnPlayerConnected;
         McReceived.PlayerDisconnected += OnPlayerDisconnected;
         McReceived.Ready += OnServerReady;
         McReceived.ShutdownComplete += OnServerStopped;
 
         ServerState = ServerState.Booting;
-        PlayerManager = new PlayerManager(Convert.ToInt16(GetServerInformation("max-players")));
+        _playerManager = new PlayerManager(Convert.ToInt16(GetServerInformation("max-players")));
+        hallOfFame =
+            new HallOfFame(Environment.Parent!); //Cuz I don't want to place it inside the mc folder for 'reasons'
 
-        _configFile = $"{mcServer.ServerPath}/config.json";
-        checkForOnlinePlayerTimer.Elapsed += StopServer;
+        _configFile = new FileInfo($"{startupFolder.FullName}/config.json");
+        _checkForOnlinePlayerTimer.Elapsed += StopServer;
+    }
+
+    private DirectoryInfo ServerRootFolder => Environment;
+
+    public ServerState ServerState { get; private set; }
+
+    private void StopServer(object? obj, EventArgs e)
+    {
+        WriteSomethingToServer("stop");
+    }
+
+    private void WriteSomethingToServer(string str)
+    {
+        WriteToProcess(new StringBuilder(str));
     }
 
     public void StartServer()
     {
-        mcServer.StartProcess();
+        StartProcess();
     }
+
     private void OnPlayerConnected(object? sender, PlayerEventArgs playerEventArgs)
     {
-        PlayerManager.PlayerLogin(playerEventArgs.Playername);
-        
-        checkForOnlinePlayerTimer.Stop();
+        _playerManager.PlayerLogin(playerEventArgs.Playername);
+
+        _checkForOnlinePlayerTimer.Stop();
     }
+
     private void OnPlayerDisconnected(object? sender, PlayerEventArgs playerEventArgs)
     {
-        PlayerManager.PlayerLogout(playerEventArgs.Playername);
-        if (!PlayerManager.GetCurrentOnlinePlayers().Any())
-        {
-            checkForOnlinePlayerTimer.Start();
-        }
+        _playerManager.PlayerLogout(playerEventArgs.Playername);
+        if (!_playerManager.CurrentOnlinePlayers.Any()) _checkForOnlinePlayerTimer.Start();
     }
+
     private void OnServerReady(object? sender, EventArgs args)
     {
         ServerState = ServerState.Online;
-        ServerTimeMeasure.StartTime = DateTime.Now;
-        
-        checkForOnlinePlayerTimer.Start();
+        _serverTimeMeasure = new ServerTimeMeasure();
+
+        _checkForOnlinePlayerTimer.Start();
     }
+
     private void OnServerStopped(object? sender, EventArgs args)
     {
         ServerState = ServerState.Offline;
 
-        HallOfFame.AddEntry(ServerTimeMeasure.GetTimeTillnow(),
-            PlayerManager.GetAllPlayers().OrderBy(x => x).ToArray());
+        hallOfFame.AddEntry(_serverTimeMeasure.GetTimeTillnow(),
+            _playerManager.AllPlayers.OrderBy(x => x).ToArray());
     }
 
-    private readonly string _configFile;
-    string GetServerInformation(string optionName)
+    private string GetServerInformation(string optionName)
     {
-        using StreamReader sr = new StreamReader(_configFile);
+        if (!_configFile.Exists) throw new FileNotFoundException($"Config file not found a: '{_configFile.FullName}'");
+        using var sr = new StreamReader(_configFile.FullName);
         while (!sr.EndOfStream)
         {
-            string s = sr.ReadLine();
+            var s = sr.ReadLine();
             if (s.StartsWith(optionName))
             {
                 s = s.Split("=")[1].Trim();
@@ -155,9 +100,21 @@ public class HigherMc
     }
 }
 
+public enum ServerState
+{
+    Online,
+    Booting,
+    Offline
+}
+
 public class ServerTimeMeasure
 {
-    public DateTime StartTime;
+    public DateTime StartTime
+    {
+        get;
+        init => field = DateTime.Now;
+    }
+
     public TimeSpan GetTimeTillnow()
     {
         return DateTime.Now - StartTime;

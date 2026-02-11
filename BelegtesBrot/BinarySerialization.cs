@@ -6,10 +6,10 @@ public static class BinarySerialization
 {
     public static T ByteToType<T>(BinaryReader reader) // TODO: Look at me
     {
-        byte[] bytes = reader.ReadBytes(Marshal.SizeOf(typeof(T)));
+        var bytes = reader.ReadBytes(Marshal.SizeOf(typeof(T)));
 
-        GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-        T theStructure = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+        var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+        var theStructure = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
         handle.Free();
 
         return theStructure;
@@ -17,9 +17,9 @@ public static class BinarySerialization
 
     public static T ReadStructFromBinaryFile<T>(string filePath) where T : struct // TODO: Look at me
     {
-        byte[] bytes = File.ReadAllBytes(filePath);
+        var bytes = File.ReadAllBytes(filePath);
 
-        IntPtr ptr = Marshal.AllocHGlobal(bytes.Length);
+        var ptr = Marshal.AllocHGlobal(bytes.Length);
         try
         {
             Marshal.Copy(bytes, 0, ptr, bytes.Length);
@@ -31,12 +31,12 @@ public static class BinarySerialization
         }
     }
 
-    static void WriteStructToBinaryFile<T>(T structure, string filePath) where T : struct // TODO: Look at me
+    private static void WriteStructToBinaryFile<T>(T structure, string filePath) where T : struct // TODO: Look at me
     {
-        int size = Marshal.SizeOf(structure);
-        byte[] bytes = new byte[size];
+        var size = Marshal.SizeOf(structure);
+        var bytes = new byte[size];
 
-        IntPtr ptr = Marshal.AllocHGlobal(size);
+        var ptr = Marshal.AllocHGlobal(size);
         try
         {
             Marshal.StructureToPtr(structure, ptr, true);

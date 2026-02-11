@@ -1,45 +1,45 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="LogicTesting.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\.gitignore" Link=".gitignore" />
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Discord.Net.Core" Version="3.18.0" />
-        <PackageReference Include="Discord.Net.Rest" Version="3.18.0" />
-        <PackageReference Include="Discord.Net.WebSocket" Version="3.18.0" />
-        <PackageReference Include="Serilog" Version="4.3.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+        <Compile Remove="LogicTesting.cs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="bin\Debug\net9.0\DGruppensuizidBot" />
-        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.deps.json" />
-        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.dll" />
-        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.pdb" />
-        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.runtimeconfig.json" />
-        <Content Include="bin\Debug\net9.0\Discord.Net.Core.dll" />
-        <Content Include="bin\Debug\net9.0\Discord.Net.Rest.dll" />
-        <Content Include="bin\Debug\net9.0\Discord.Net.WebSocket.dll" />
-        <Content Include="bin\Debug\net9.0\Microsoft.Bcl.AsyncInterfaces.dll" />
-        <Content Include="bin\Debug\net9.0\Newtonsoft.Json.dll" />
-        <Content Include="bin\Debug\net9.0\serverStuff\activities.txt" />
-        <Content Include="bin\Debug\net9.0\serverStuff\token.txt" />
-        <Content Include="bin\Debug\net9.0\System.Interactive.Async.dll" />
-        <Content Include="bin\Debug\net9.0\System.Linq.Async.dll" />
+        <None Include="..\.gitignore" Link=".gitignore"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Discord.Net.Core" Version="3.18.0"/>
+        <PackageReference Include="Discord.Net.Rest" Version="3.18.0"/>
+        <PackageReference Include="Discord.Net.WebSocket" Version="3.18.0"/>
+        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="bin\Debug\net9.0\DGruppensuizidBot"/>
+        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.deps.json"/>
+        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.dll"/>
+        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.pdb"/>
+        <Content Include="bin\Debug\net9.0\DGruppensuizidBot.runtimeconfig.json"/>
+        <Content Include="bin\Debug\net9.0\Discord.Net.Core.dll"/>
+        <Content Include="bin\Debug\net9.0\Discord.Net.Rest.dll"/>
+        <Content Include="bin\Debug\net9.0\Discord.Net.WebSocket.dll"/>
+        <Content Include="bin\Debug\net9.0\Microsoft.Bcl.AsyncInterfaces.dll"/>
+        <Content Include="bin\Debug\net9.0\Newtonsoft.Json.dll"/>
+        <Content Include="bin\Debug\net9.0\serverStuff\activities.txt"/>
+        <Content Include="bin\Debug\net9.0\serverStuff\token.txt"/>
+        <Content Include="bin\Debug\net9.0\System.Interactive.Async.dll"/>
+        <Content Include="bin\Debug\net9.0\System.Linq.Async.dll"/>
     </ItemGroup>
 
 </Project>

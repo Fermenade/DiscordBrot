@@ -1,112 +1,142 @@
 ﻿using Discord;
 using Discord.WebSocket;
 
-namespace BelegtesBrot
+namespace BelegtesBrot;
+
+internal class DiscordClient : IBaseCom
 {
-    internal class DiscordClient : IBaseCom
+    public static DirectoryInfo _directoryInfo = new(Path.Combine(Environment.CurrentDirectory, "data"));
+
+    private readonly DiscordSocketClient _client;
+
+    private readonly List<IServer> _servers = new();
+
+
+    public DiscordClient(DiscordSocketClient client)
     {
-        private DiscordSocketClient _client;
-        private List<IServer> _servers;
+        _client = client;
+    }
 
-        public DiscordClient(DiscordSocketClient client)
+    /// <summary>
+    ///     Handles a received message event.
+    /// </summary>
+    /// <param name="message">The received message.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task MessageReceived(IMessage message)
+    {
+        while (true)
         {
-            _client = client;
-        }
-
-        void _Ready()
-        {
-            _client.MessageReceived += MessageReceived;
-            _client.MessageUpdated += MessageUpdated;
-            _client.MessageDeleted += MessageDeleted;
-        }
-
-        /// <summary>
-        /// Handles a received message event.
-        /// </summary>
-        /// <param name="message">The received message.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        public Task MessageReceived(IMessage message)
-        {
-            CheckServerListUpToDate();
-            if (message.Channel is SocketGuildChannel channel)
+            switch (message.Channel)
             {
-                foreach (IServer socketGuild in _servers)
+                case IGuildChannel channel:
                 {
-                    if (socketGuild.Guild.Id == channel.Guild.Id)
-                    {
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == channel.Guild.Id))
                         return socketGuild.MessageReceived(message);
-                    }
+
+                    _servers.Add(new Server(channel.Guild));
+                    continue;
                 }
+                case IDMChannel dmChannel:
+                    break;
+                default:
+                    Console.WriteLine("Received message was neither from Guild or DM: " +
+                                      message.Type); // To test if there is any other case.
+                    break;
             }
-            else if (message.Channel is SocketDMChannel)
-            {
-                //TODO: handle direct messages.
-            }
+
             return Task.CompletedTask;
         }
+    }
 
-        /// <summary>
-        /// Handles an updated message event.
-        /// </summary>
-        /// <param name="previousMessage">The previous cacheable message.</param>
-        /// <param name="currentMessage">The current cacheable message.</param>
-        /// <param name="channel">The message channel.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage, ISocketMessageChannel channel)
+    /// <summary>
+    ///     Handles an updated message event.
+    /// </summary>
+    /// <param name="previousMessage">The previous cacheable message.</param>
+    /// <param name="currentMessage">The current cacheable message.</param>
+    /// <param name="channel">The message channel.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage,
+        IMessageChannel channel)
+    {
+        while (true)
         {
-            CheckServerListUpToDate();
-            if (channel is SocketGuildChannel chan)
+            switch (channel)
             {
-                foreach (IServer socketGuild in _servers)
+                case IGuildChannel chan:
                 {
-                    if (socketGuild.Guild.Id == chan.Guild.Id)
-                    {
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
                         return socketGuild.MessageUpdated(previousMessage, currentMessage, channel);
-                    }
-                }
-            }
-            return Task.CompletedTask;
-        }
 
-        /// <summary>
-        /// Handles a deleted message event.
-        /// </summary>
-        /// <param name="message">The cacheable deleted message.</param>
-        /// <param name="channel">The cacheable deleted message channel.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
+                    _servers.Add(new Server(chan.Guild));
+                    continue;
+                }
+                case IDMChannel dmChannel:
+                    //Direct message.
+                    break;
+            }
+
+            return Task.CompletedTask;
+            break;
+        }
+    }
+
+    /// <summary>
+    ///     Handles a deleted message event.
+    /// </summary>
+    /// <param name="message">The cacheable deleted message.</param>
+    /// <param name="channel">The cacheable deleted message channel.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
+    {
+        while (true)
         {
-            CheckServerListUpToDate();
-            if (channel.Value is SocketGuildChannel chan)
+            switch (channel.Value)
             {
-                foreach (IServer socketGuild in _servers)
+                case IGuildChannel chan:
                 {
-                    if (socketGuild.Guild.Id == chan.Guild.Id)
-                    {
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
                         return socketGuild.MessageDeleted(message, channel);
-                    }
+
+                    _servers.Add(new Server(chan.Guild));
+                    continue;
                 }
+                case IDMChannel dmChannel:
+                    break;
             }
+
             return Task.CompletedTask;
+            break;
         }
+    }
 
-        /// <summary>
-        /// Checks if the server list is up to date with the guilds available in the Discord client.
-        /// </summary>
-        void CheckServerListUpToDate()
+    public Task SlashCommandExecuted(SocketSlashCommand command)
+    {
+        while (true)
         {
-            if (_servers.Count == _client.Guilds.Count) return;
-            
-            foreach (SocketGuild? guild in _client.Guilds)
+            switch (command.Channel)
             {
-                if (_servers.All(s => s.Guild.Id != guild.Id))
+                case IGuildChannel chan:
                 {
-                    _servers.Add(new Server(guild));
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
+                        return socketGuild.SlashCommandExecuted(command);
+
+                    _servers.Add(new Server(chan.Guild));
+                    continue;
                 }
+                case IDMChannel dmChannel:
+                    break;
             }
 
-            // 2. Remove servers whose guilds are no longer present
-            _servers.RemoveAll(s => _client.Guilds.All(g => g.Id != s.Guild.Id));
+            return Task.CompletedTask;
+            break;
         }
+    }
+
+    public void Ready()
+    {
+        _client.MessageReceived += MessageReceived;
+        _client.MessageUpdated += MessageUpdated;
+        _client.MessageDeleted += MessageDeleted;
+        _client.SlashCommandExecuted += SlashCommandExecuted;
     }
 }
