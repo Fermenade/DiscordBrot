@@ -33,8 +33,8 @@ public sealed class LinkedChannel
         if (!typeof(IBaseCom).IsAssignableFrom(modeType))
             throw new InvalidOperationException($"{modeType.FullName} does not implement IBaseCom");
 
-        return (IBaseCom)Activator.CreateInstance(modeType)
-               ?? throw new InvalidOperationException($"Could not create instance of {modeType.FullName}");
+        return (IBaseCom)(Activator.CreateInstance(modeType,ChannelId)
+               ?? throw new InvalidOperationException($"Could not create instance of {modeType.FullName}"));
     }
 
     private static void ValidateMode(string modeName)
