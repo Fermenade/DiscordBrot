@@ -8,6 +8,7 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
 
     public OrderCachedMessages(List<AlphabetMessage<T, TDataype>> messages)
     {
+        Logger.LogMessage("Combination mode initializing.");
         var e = GetBotUpToDate(messages);
         collection = new OrderMessageCache<T, TDataype>(e);
     }
@@ -39,7 +40,6 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
             if (msg.GetCombination() == null)
             {
                 currentStreak.CombinationStreak = 0;
-                Console.WriteLine($"Combination of message {msg.Content} was null");
                 continue;
             }
 
@@ -47,7 +47,6 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
             if (currentStreak.CombinationStreak == 0)
             {
                 currentStreak.CurrentCombination = msg.GetCombination()!; //Cannot Convert
-                Console.WriteLine($"New streak {msg.GetCombination()}");
             }
             else
             {
@@ -58,13 +57,10 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
                 {
                     currentStreak.CombinationStreak = 0;
                     currentStreak.CurrentCombination = msg.GetCombination()!;
-                    Console.WriteLine(
-                        $"Expected Combination {currentStreak.CurrentCombination.GetCombo(-1)} but combination was {msg.GetCombination()}");
+
                 }
                 else if (x == y)
                 {
-                    Console.WriteLine(
-                        $"Combination {currentStreak.CurrentCombination.GetCombo(-1)} matched {msg.GetCombination()}");
                     currentStreak.CurrentCombination = msg.GetCombination()!;
                 }
             }
@@ -74,13 +70,13 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
             if (currentStreak.CombinationStreak > topStreak.CombinationStreak)
             {
                 topStreak = new Streak<T, TDataype>(currentStreak.CombinationStreak, currentStreak.CurrentCombination);
-                Console.WriteLine($"New top streak {topStreak.CurrentCombination}:  {topStreak.CombinationStreak}");
+                Logger.LogMessage($"New top streak {topStreak.CurrentCombination}:  {topStreak.CombinationStreak}");
             }
         }
 
         var getIndexLastTopStreak = messages
             .FindIndex(x => x.GetCombination()?.GetHashCode() == topStreak.CurrentCombination.GetHashCode());
-        Console.WriteLine($"Last index of top Streak {getIndexLastTopStreak}");
+        Logger.LogMessage($"Last index of top Streak {getIndexLastTopStreak}");
         var s = topStreak.CurrentCombination;
         var list = new List<AlphabetEntry<T, TDataype>>(messages.Count);
 
@@ -90,7 +86,7 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
             list.Add(new AlphabetEntry<T, TDataype>(messages[i], o));
             var e = messages[i].GetCombination();
             var x = e == null ? "***" : e.ToString()!;
-            Console.WriteLine($"{x}: {o}");
+            Logger.LogMessage($"{x}: {o}");
         }
 
         return list;

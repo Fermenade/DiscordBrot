@@ -8,7 +8,6 @@ public class Logger
     {
         if (!Directory.Exists(LogDirectory)) Directory.CreateDirectory(LogDirectory);
     }
-
     public static async Task LogMessage(string message)
     {
         var fileName = DateTime.Now.ToString("yyyy-MM-dd") + ".log";
@@ -16,6 +15,7 @@ public class Logger
 
         // Append the message with timestamp
         Console.WriteLine(message);
+        
         await File.AppendAllTextAsync(filePath, $"{DateTime.Now:HH:mm:ss} - {message}{Environment.NewLine}");
 
         // Clean up old files
