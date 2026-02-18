@@ -9,10 +9,10 @@ public class Combination(char[] combination) : ReadOnlyCollection<char>(combinat
         AlphabetEntry<Combination, char> currentMessage)
     {
         if (previousMessage.message.Author.Id == currentMessage.message.Author.Id) return FailureCase.DuplicateAuthor;
-        var e = currentMessage.message.GetCombination();
+        var e = currentMessage.message.Combination;
 
         if (e == null) return FailureCase.NotCombination;
-        if (currentMessage.actuallCombination.GetHashCode() == e.GetHashCode()) return FailureCase.None;
+        if (currentMessage.actuallCombination.ToString() == e.ToString()) return FailureCase.None;
 
         return FailureCase.WrongCombination;
     }
@@ -21,10 +21,10 @@ public class Combination(char[] combination) : ReadOnlyCollection<char>(combinat
         AlphabetEntry<Combination, char> currentMessage)
     {
         if (previousMessage == null) return FailureCase.NonExistent;
-        var e = currentMessage.message.GetCombination();
+        var e = currentMessage.message.Combination;
 
         if (e == null) return FailureCase.NotCombination;
-        if (currentMessage.actuallCombination.GetHashCode() == e.GetHashCode()) return FailureCase.None;
+        if (currentMessage.actuallCombination.ToString() == e.ToString()) return FailureCase.None;
 
         return FailureCase.WrongCombination;
     }
@@ -91,23 +91,19 @@ public class Combination(char[] combination) : ReadOnlyCollection<char>(combinat
         return combination.Count == 3 && combination.All(x => 65 <= x && x <= 90);
     }
 
-    public bool CheckFormat()
-    {
-        return CheckFormat(Items);
-    }
-
     public override int GetHashCode()
     {
-        unchecked // Overflow is fine, just wrap
-        {
-            var hash = 17;
-            for (var i = 0; i < Count; i++) hash = hash * 23 + this[i]; // Prime numbers help distribute hash codes
-            return hash;
-        }
+        throw new NotImplementedException();
     }
+
 
     public override string ToString()
     {
         return new string(Items.ToArray());
+    }
+
+    public bool CheckFormat()
+    {
+        return CheckFormat(Items);
     }
 }

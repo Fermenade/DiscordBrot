@@ -32,8 +32,5 @@ public class AlphabetMessage<T, TDatatype>(IMessage message) where T : ICombinat
         return message.DeleteAsync();
     }
 
-    public ICombination<T, TDatatype>? GetCombination()
-    {
-        return T.GetCombination(Content);
-    }
+    public ICombination<T, TDatatype>? Combination => T.GetCombination(Content);
 }

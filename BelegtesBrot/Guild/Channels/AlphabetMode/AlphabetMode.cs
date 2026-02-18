@@ -14,11 +14,23 @@ internal class AlphabetMode : IBaseCom
     public AlphabetMode(ulong channelId)
     {
         LoadMessagesFromChannel(channelId);
-        SendMessage();
     }
-
-    private async void SendMessage()
+    private async void LoadMessagesFromChannel(ulong channelId)
     {
+        _channel = (IMessageChannel)Program._client.GetChannel(channelId);
+        Logger.LogMessage($"Alphabet mode of channel '{_channel.Name}' initializing");
+        
+        var messages = (await _channel.GetMessagesAsync(30).FlattenAsync()).ToArray();
+        List<AlphabetMessage<Combination, char>> alphabetMessages = new();
+        for (int i = messages.Length - 1; i >= 0; i--)
+        {
+            alphabetMessages.Add(new AlphabetMessage<Combination, char>(messages[i]));
+        }
+        
+        _orderCachedMessages = new OrderCachedMessages<Combination, char>(alphabetMessages);
+        
+        if(_orderCachedMessages.Count == 0) await _channel.SendMessageAsync("ZZZ");
+        
         var x = _orderCachedMessages.Collection.Last();
         if (x.message.Author.Id != Program._client.CurrentUser.Id)
         {
@@ -26,44 +38,39 @@ internal class AlphabetMode : IBaseCom
         }
     }
 
-    private async void LoadMessagesFromChannel(ulong channelId)
-    {
-        _channel = (IMessageChannel)Program._client.GetChannel(channelId);
-        var messages = await _channel.GetMessagesAsync(30).FlattenAsync();
-        
-        List<AlphabetMessage<Combination, char>> alphabetMessages = new();
-        foreach (var message in messages)
-            alphabetMessages.Add(new AlphabetMessage<Combination, char>(message));
-        _orderCachedMessages = new OrderCachedMessages<Combination, char>(alphabetMessages);
-    }
-
     public Task MessageReceived(IMessage msg)
     {
         AlphabetMessage<Combination, char> message = new(msg);
-        var failure = _orderCachedMessages.Add(message);
-
-        switch (failure)
+        if (msg.Content.StartsWith("???"))
         {
-            case FailureCase.DuplicateAuthor or FailureCase.NotCombination:
-                message.DeleteAsync();
-                break;
-            case FailureCase.WrongCombination:
-                AddFishReactionToMessage(message);
-                break;
-            case FailureCase.None:
-                break;
+            _channel.SendMessageAsync(_orderCachedMessages.Collection.Last().actuallCombination.GetCombo(-1).ToString());
+            message.DeleteAsync();
         }
-
+        else
+        {
+            var failure = _orderCachedMessages.Add(message);
+            switch (failure)
+            {
+                case FailureCase.DuplicateAuthor or FailureCase.NotCombination:
+                    message.DeleteAsync();
+                    break;
+                case FailureCase.WrongCombination:
+                    AddFishReactionToMessage(message);
+                    break;
+                case FailureCase.None:
+                    break;
+            }
+        }
         return Task.CompletedTask;
     }
 
 
     public Task MessageUpdated(Cacheable<IMessage, ulong> preMsg, IMessage curMsg, IMessageChannel channel)
     {
+        
         AlphabetMessage<Combination, char> currentMessage = new(curMsg);
 
         var failure = _orderCachedMessages.Update(preMsg.Id, currentMessage);
-
         switch (failure)
         {
             case FailureCase.WrongCombination or FailureCase.NotCombination:
@@ -95,8 +102,7 @@ internal class AlphabetMode : IBaseCom
 
     private async void RemoveFishReactionAsync(AlphabetMessage<Combination, char> message)
     {
-        await message.RemoveReactionAsync(new Emoji("🐟"),
-            ((SocketGuildChannel)message.Channel).Guild.CurrentUser);
+        await message.RemoveReactionAsync(new Emoji("🐟"),Program._client.CurrentUser);
         // soll der fehler wieder abgezogen werden, wenn der fehler ausgebessert wird?
     }
 }

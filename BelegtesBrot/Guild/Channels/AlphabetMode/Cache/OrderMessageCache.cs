@@ -14,7 +14,7 @@ internal class OrderMessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntr
         AlphabetEntry<T, TDataype> entry = new(message, lastmessage.actuallCombination.GetCombo(-1));
 
         base.Add(entry);
-        var e = entry.message.GetCombination();
+        var e = entry.message.Combination;
 
         return T.AddRule(lastmessage, entry);
     }
