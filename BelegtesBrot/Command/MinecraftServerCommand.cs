@@ -61,9 +61,9 @@ public class MinecraftServerCommand
         embed.AddField("Status:", _minecraftServer?.ServerState.ToString() ?? nameof(ServerState.Offline));
         if (_minecraftServer?.ServerState == ServerState.Online)
         {
-            embed.AddField("Hobbylose:", $"{_minecraftServer._playerManager.CurrentOnlinePlayers.Count}");
+            embed.AddField("Hobbylose:", $"{_minecraftServer.PlayerManager.CurrentOnlinePlayers.Count}");
             embed.AddField("MC wird seit",
-                $"{FormatDifference(_minecraftServer._serverTimeMeasure!.GetTimeTillnow())} gesuchtet");
+                $"{FormatDifference(_minecraftServer.ServerTimeMeasure!.GetTimeTillnow())} gesuchtet");
         }
 
         return embed;

@@ -25,11 +25,11 @@ internal abstract class Server
     {
         if (!File.Exists(executablePath))
             throw new FileNotFoundException("Server startup file not found", executablePath);
-        ExecutablePath = executablePath;
-        Environment = new DirectoryInfo(environmentExecutablePath);
+        Environment = new DirectoryInfo(executablePath);
 
-        processInfo.Arguments = ExecutablePath;
-        processInfo.FileName = Environment.FullName;
+        processInfo.FileName = environmentExecutablePath;
+        processInfo.Arguments = (Environment = new (executablePath)).FullName;
+
         _process = new Process
         {
             StartInfo = processInfo
@@ -38,7 +38,6 @@ internal abstract class Server
     }
 
     public DirectoryInfo Environment { get; }
-    public string ExecutablePath { get; }
     public bool Running => !_process.HasExited;
     public event EventHandler<DataReceivedEventArgs> ReceivedData; // Custom event
 

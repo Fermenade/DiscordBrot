@@ -8,10 +8,10 @@ internal class MinecraftServer : Server
     private readonly Timer _checkForOnlinePlayerTimer = new();
 
     private readonly FileInfo _configFile;
-    public readonly PlayerManager _playerManager;
+    public readonly PlayerManager PlayerManager;
     public readonly MCReceivedMessage McReceived;
-    public ServerTimeMeasure? _serverTimeMeasure;
-    public HallOfFame hallOfFame;
+    public ServerTimeMeasure? ServerTimeMeasure;
+    public HallOfFame HallOfFame;
 
     public MinecraftServer(DirectoryInfo startupFolder) :
         base(
@@ -24,13 +24,13 @@ internal class MinecraftServer : Server
         McReceived.PlayerDisconnected += OnPlayerDisconnected;
         McReceived.Ready += OnServerReady;
         McReceived.ShutdownComplete += OnServerStopped;
-
-        ServerState = ServerState.Booting;
-        _playerManager = new PlayerManager(Convert.ToInt16(GetServerInformation("max-players")));
-        hallOfFame =
-            new HallOfFame(Environment.Parent!); //Cuz I don't want to place it inside the mc folder for 'reasons'
-
-        _configFile = new FileInfo($"{startupFolder.FullName}/config.json");
+        
+        _configFile = new FileInfo($"{startupFolder.FullName}/server.properties");
+        
+        PlayerManager = new PlayerManager(Convert.ToInt16(GetServerInformation("max-players")));
+        
+        //Cuz I don't want to place it inside the mc folder for 'reasons'
+        HallOfFame = new HallOfFame(Environment.Parent!);
         _checkForOnlinePlayerTimer.Elapsed += StopServer;
     }
 
@@ -50,26 +50,27 @@ internal class MinecraftServer : Server
 
     public void StartServer()
     {
+        ServerState = ServerState.Booting;
         StartProcess();
     }
 
     private void OnPlayerConnected(object? sender, PlayerEventArgs playerEventArgs)
     {
-        _playerManager.PlayerLogin(playerEventArgs.Playername);
+        PlayerManager.PlayerLogin(playerEventArgs.Playername);
 
         _checkForOnlinePlayerTimer.Stop();
     }
 
     private void OnPlayerDisconnected(object? sender, PlayerEventArgs playerEventArgs)
     {
-        _playerManager.PlayerLogout(playerEventArgs.Playername);
-        if (!_playerManager.CurrentOnlinePlayers.Any()) _checkForOnlinePlayerTimer.Start();
+        PlayerManager.PlayerLogout(playerEventArgs.Playername);
+        if (!PlayerManager.CurrentOnlinePlayers.Any()) _checkForOnlinePlayerTimer.Start();
     }
 
     private void OnServerReady(object? sender, EventArgs args)
     {
         ServerState = ServerState.Online;
-        _serverTimeMeasure = new ServerTimeMeasure();
+        ServerTimeMeasure = new ServerTimeMeasure();
 
         _checkForOnlinePlayerTimer.Start();
     }
@@ -78,8 +79,8 @@ internal class MinecraftServer : Server
     {
         ServerState = ServerState.Offline;
 
-        hallOfFame.AddEntry(_serverTimeMeasure.GetTimeTillnow(),
-            _playerManager.AllPlayers.OrderBy(x => x).ToArray());
+        HallOfFame.AddEntry(ServerTimeMeasure.GetTimeTillnow(),
+            PlayerManager.AllPlayers.OrderBy(x => x).ToArray());
     }
 
     private string GetServerInformation(string optionName)

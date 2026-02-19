@@ -32,7 +32,7 @@ internal class Program
 
     private static async void Start()
     {
-        await _client.LoginAsync(TokenType.Bot, File.ReadAllText(isDev ? devTokenPath : tokenPath));
+        await _client.LoginAsync(TokenType.Bot, await File.ReadAllTextAsync(isDev ? devTokenPath : tokenPath));
         await _client.StartAsync();
 
         TaskCompletionSource<bool> _readyCompletionSource = new();
