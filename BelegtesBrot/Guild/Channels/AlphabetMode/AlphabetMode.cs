@@ -43,7 +43,10 @@ internal class AlphabetMode : IBaseCom
         AlphabetMessage<Combination, char> message = new(msg);
         if (msg.Content.StartsWith("???"))
         {
-            _channel.SendMessageAsync(_orderCachedMessages.Collection.Last().actuallCombination.GetCombo(-1).ToString());
+            if (_orderCachedMessages.Collection.Last().message.Author.Id != Program._client.CurrentUser.Id)
+            {
+                _channel.SendMessageAsync(_orderCachedMessages.Collection.Last().actuallCombination.GetCombo(-1).ToString());
+            }
             message.DeleteAsync();
         }
         else
