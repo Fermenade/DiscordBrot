@@ -3,7 +3,7 @@ using Timer = System.Timers.Timer;
 
 namespace BelegtesBrot.BMC_Server;
 
-internal class MinecraftServer : Server
+public class MinecraftServer : Server
 {
     private readonly Timer _checkForOnlinePlayerTimer = new();
 

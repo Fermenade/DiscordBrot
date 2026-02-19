@@ -8,7 +8,7 @@ public class PlayerEventArgs(string playername)
     public string Playername => playername;
 }
 
-internal class MCReceivedMessage
+public class MCReceivedMessage
 {
     private readonly Server _server;
 
@@ -49,7 +49,7 @@ internal class MCReceivedMessage
         var serverShutdown = @$"{serverPrefix} Stopped IO worker!";
         //serverShutdown = @$"{serverPrefix} ThreadedAnvilChunkStorage: All dimensions are saved";
 
-
+        Console.WriteLine(data);
         Match match;
         if (Regex.IsMatch(data, serverIsReady)) //Letzte nachricht, wenn der server hochgefahren wurde
         {

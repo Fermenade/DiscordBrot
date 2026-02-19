@@ -3,7 +3,7 @@ using System.Text;
 
 namespace BelegtesBrot.BMC_Server;
 
-internal abstract class Server
+public abstract class Server
 {
     private readonly Process _process;
 
