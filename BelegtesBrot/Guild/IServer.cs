@@ -1,6 +1,8 @@
+using BelegtesBrot.Command;
+using BelegtesBrot.Guild.Channels;
 using Discord;
 
-namespace BelegtesBrot;
+namespace BelegtesBrot.Guild;
 
 internal interface IServer : IBaseCom
 {

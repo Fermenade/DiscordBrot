@@ -1,4 +1,4 @@
-﻿namespace BelegtesBrot.Channels.Cache;
+﻿namespace BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 
 public interface ICombination<T, TDatatype> : IReadOnlyCollection<TDatatype> where T : ICombination<T, TDatatype>
 {

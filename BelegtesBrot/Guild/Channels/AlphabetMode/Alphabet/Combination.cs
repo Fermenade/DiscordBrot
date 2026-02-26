@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
-using BelegtesBrot.Channels.Cache;
+using BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 
-namespace BelegtesBrot.Channels.Alphabet;
+namespace BelegtesBrot.Guild.Channels.AlphabetMode.Alphabet;
 
 public class Combination(char[] combination) : ReadOnlyCollection<char>(combination), ICombination<Combination, char>
 {

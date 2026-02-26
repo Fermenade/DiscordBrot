@@ -1,6 +1,6 @@
 using Discord;
 
-namespace BelegtesBrot.Channels.Cache;
+namespace BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 
 public record AlphabetMessage<TCombination, TDatatype> where TCombination : ICombination<TCombination, TDatatype>
 {

@@ -1,16 +1,16 @@
 using System.Text;
-using BelegtesBrot.BMC_Server;
+using BelegtesBrot.MinecraftServer;
 using Discord;
 using Discord.WebSocket;
 
-namespace BelegtesBrot.commands;
+namespace BelegtesBrot.Command;
 
 public class MinecraftServerCommand
 {
     private CommandSession _commandSession;
     private readonly DirectoryInfo _minecraftServerDirectory;
 
-    private MinecraftServer? _minecraftServer;
+    private MinecraftServer.MinecraftServer? _minecraftServer;
 
     internal MinecraftServerCommand(CommandSession commandSession)
     {
@@ -30,7 +30,7 @@ public class MinecraftServerCommand
 
         var subCommand = command.Data.Options.First().Name;
 
-        _minecraftServer ??= new MinecraftServer(_minecraftServerDirectory,_commandSession._session);
+        _minecraftServer ??= new MinecraftServer.MinecraftServer(_minecraftServerDirectory,_commandSession._session);
         switch (subCommand)
         {
             case "start":
@@ -101,6 +101,12 @@ public class MinecraftServerCommand
 
     private async void StartCommand(SocketSlashCommand command)
     {
+        if (_minecraftServer == null)
+        { 
+           await _commandSession._session.Logger.LogMessage("Tried to start server but Minecraft Server was not initalized");
+           return;
+        }
+        
         _minecraftServer.StartServer();
         await command.RespondAsync("Started");
 

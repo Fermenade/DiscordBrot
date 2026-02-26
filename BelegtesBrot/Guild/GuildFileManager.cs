@@ -1,6 +1,6 @@
 using BelegtesBrot.FileSystem;
 
-namespace BelegtesBrot;
+namespace BelegtesBrot.Guild;
 
 public class GuildFileManager
 {

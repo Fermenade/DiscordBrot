@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
+using BelegtesBrot.Guild.Channels;
 
-namespace BelegtesBrot;
+namespace BelegtesBrot.Guild;
 
 internal class LinkedChannelManager
 {

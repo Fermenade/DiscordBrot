@@ -1,6 +1,5 @@
-﻿using BelegtesBrot.Channels;
-using BelegtesBrot.Channels.Alphabet;
-using BelegtesBrot.Channels.Cache;
+﻿using BelegtesBrot.Guild.Channels.AlphabetMode.Alphabet;
+using BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 using Discord;
 using Discord.WebSocket;
 

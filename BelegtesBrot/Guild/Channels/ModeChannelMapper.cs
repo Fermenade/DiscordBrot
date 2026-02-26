@@ -1,7 +1,7 @@
 using System.Collections.Frozen;
 using System.Reflection;
 
-namespace BelegtesBrot.Channels;
+namespace BelegtesBrot.Guild.Channels;
 
 public static class ModeChannelMapper
 {

@@ -1,6 +1,6 @@
 using Discord;
 
-namespace BelegtesBrot.Channels;
+namespace BelegtesBrot.Guild.Channels.AlphabetMode;
 
 public static class AlphabetLogMessage
 {

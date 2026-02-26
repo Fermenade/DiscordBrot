@@ -1,7 +1,8 @@
-﻿using Discord;
+﻿using BelegtesBrot.Command;
+using Discord;
 using Discord.WebSocket;
 
-namespace BelegtesBrot;
+namespace BelegtesBrot.Guild;
 
 internal class Server : Session, IServer
 {

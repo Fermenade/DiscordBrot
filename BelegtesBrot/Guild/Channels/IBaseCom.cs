@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 
-namespace BelegtesBrot;
+namespace BelegtesBrot.Guild.Channels;
 
 public interface IBaseCom
 {

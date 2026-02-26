@@ -1,9 +1,9 @@
 using System.Text.Json;
-using BelegtesBrot.Channels;
+using BelegtesBrot.Guild.Channels;
 using Discord;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace BelegtesBrot.commands;
+namespace BelegtesBrot.Command;
 
 public class InitCommands
 {

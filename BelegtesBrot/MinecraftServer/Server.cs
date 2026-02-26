@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace BelegtesBrot.BMC_Server;
+namespace BelegtesBrot.MinecraftServer;
 
 public abstract class Server
 {
@@ -21,13 +21,13 @@ public abstract class Server
     /// </summary>
     /// <param name="environmentExecutablePath">Path to environment of server</param>
     /// <param name="executablePath">Path to the server executable</param>
-    protected Server(string environmentExecutablePath, string executablePath)
+    protected Server(DirectoryInfo serverRoot, string environmentExecutablePath, string executablePath)
     {
         if (!File.Exists(executablePath))
             throw new FileNotFoundException("Server startup file not found", executablePath);
         
         processInfo.FileName = environmentExecutablePath;
-        processInfo.Arguments = (ServerRootFolder = new DirectoryInfo(executablePath)).FullName;
+        processInfo.Arguments = (ServerRootFolder = serverRoot).FullName;
 
         _process = new Process
         {
@@ -49,5 +49,9 @@ public abstract class Server
     {
         if (Running) await _process.StandardInput.WriteLineAsync(stringBuilder);
     }
-    private void OnProcessDataReceived(object sender, DataReceivedEventArgs e)=> ReceivedData.Invoke(this, e);
+    private void OnProcessDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        Logger.LogMessage(e.Data);
+        ReceivedData.Invoke(this, e);
+    }
 }

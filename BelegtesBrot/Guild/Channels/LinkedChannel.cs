@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-using BelegtesBrot.Channels;
 
-namespace BelegtesBrot;
+namespace BelegtesBrot.Guild.Channels;
 
 public sealed class LinkedChannel
 {

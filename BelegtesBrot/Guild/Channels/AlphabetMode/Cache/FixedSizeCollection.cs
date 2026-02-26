@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace BelegtesBrot.Channels.Cache;
+namespace BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 
 internal class FixedSizeCollection<T>
 {

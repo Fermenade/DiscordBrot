@@ -1,9 +1,10 @@
 using System.Text;
-using BelegtesBrot.Channels;
+using BelegtesBrot.Guild;
+using BelegtesBrot.Guild.Channels;
 using Discord;
 using Discord.WebSocket;
 
-namespace BelegtesBrot.commands;
+namespace BelegtesBrot.Command;
 
 public class ModeCommand
 {

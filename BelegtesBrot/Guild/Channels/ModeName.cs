@@ -1,4 +1,4 @@
-namespace BelegtesBrot.Channels;
+namespace BelegtesBrot.Guild.Channels;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class ModeName(string name, string description) : Attribute

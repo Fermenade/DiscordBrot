@@ -1,7 +1,6 @@
-using BelegtesBrot.commands;
 using Discord.WebSocket;
 
-namespace BelegtesBrot;
+namespace BelegtesBrot.Command;
 
 //Create a session class that has all base functionality of a session?
 internal class CommandSession

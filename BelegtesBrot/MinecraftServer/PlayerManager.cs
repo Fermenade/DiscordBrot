@@ -1,4 +1,4 @@
-namespace BelegtesBrot.BMC_Server;
+namespace BelegtesBrot.MinecraftServer;
 
 public class PlayerManager
 {

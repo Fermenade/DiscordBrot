@@ -1,9 +1,9 @@
 using System.Text;
 using Timer = System.Timers.Timer;
 
-namespace BelegtesBrot.BMC_Server;
+namespace BelegtesBrot.MinecraftServer;
 
-public class MinecraftServer : Server
+public class MinecraftServer : BelegtesBrot.MinecraftServer.Server
 {
     private readonly Timer _checkForOnlinePlayerTimer = new();
 
@@ -12,13 +12,13 @@ public class MinecraftServer : Server
     public readonly PlayerManager PlayerManager;
     public HallOfFame HallOfFame;
     public ServerTimeMeasure? ServerTimeMeasure;
-    public DirectoryInfo ServerRootFolder => base.ServerRootFolder;
+    public new DirectoryInfo ServerRootFolder => base.ServerRootFolder;
     private DirectoryInfo _nonMcMcDataFolder;
     public Session ServerSession;
     private MinecraftLogger _logger;
 
     public MinecraftServer(DirectoryInfo startupFolder, Session session) :
-        base(
+        base(startupFolder,
             OperatingSystem.IsWindows() ? "powershell.exe" : "/bin/bash",
             Path.Combine(startupFolder.FullName, OperatingSystem.IsWindows() ? "start.ps1" : "start.sh")
         )

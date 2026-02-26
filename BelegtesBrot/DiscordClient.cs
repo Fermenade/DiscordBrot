@@ -1,4 +1,6 @@
-﻿using Discord;
+﻿using BelegtesBrot.Guild;
+using BelegtesBrot.Guild.Channels;
+using Discord;
 using Discord.WebSocket;
 
 namespace BelegtesBrot;

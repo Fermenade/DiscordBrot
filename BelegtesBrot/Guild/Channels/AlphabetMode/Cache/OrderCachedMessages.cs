@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace BelegtesBrot.Channels.Cache;
+namespace BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 
 public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype>
 {

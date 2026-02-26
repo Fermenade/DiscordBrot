@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace BelegtesBrot.BMC_Server;
+namespace BelegtesBrot.MinecraftServer;
 
 public class PlayerEventArgs(string playername)
 {
@@ -10,10 +10,10 @@ public class PlayerEventArgs(string playername)
 
 public class MCReceivedMessage
 {
-    private readonly Server _server;
+    private readonly BelegtesBrot.MinecraftServer.Server _server;
     private MinecraftLogger _logger;
 
-    public MCReceivedMessage(Server server, MinecraftLogger logger)
+    public MCReceivedMessage(BelegtesBrot.MinecraftServer.Server server, MinecraftLogger logger)
     {
         _server = server;
         _server.ReceivedData += HandleReceivedServerData;

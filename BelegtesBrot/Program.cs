@@ -1,4 +1,4 @@
-﻿using BelegtesBrot.commands;
+﻿using BelegtesBrot.Command;
 using Discord;
 using Discord.WebSocket;
 

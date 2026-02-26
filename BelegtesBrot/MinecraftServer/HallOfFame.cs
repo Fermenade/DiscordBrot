@@ -2,7 +2,7 @@ using BelegtesBrot.FileSystem;
 using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace BelegtesBrot.BMC_Server;
+namespace BelegtesBrot.MinecraftServer;
 
 public class HallOfFame : JsonFile
 {

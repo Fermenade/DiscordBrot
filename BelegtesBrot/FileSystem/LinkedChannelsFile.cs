@@ -1,3 +1,5 @@
+using BelegtesBrot.Guild.Channels;
+
 namespace BelegtesBrot.FileSystem;
 
 public sealed class LinkedChannelsFile : JsonFile

@@ -1,4 +1,4 @@
-namespace BelegtesBrot.Channels.Cache;
+namespace BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 
 internal class OrderMessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntry<T, TDataype>>
     where T : ICombination<T, TDataype>
