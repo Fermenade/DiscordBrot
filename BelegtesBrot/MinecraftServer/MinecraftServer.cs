@@ -3,9 +3,14 @@ using Timer = System.Timers.Timer;
 
 namespace BelegtesBrot.MinecraftServer;
 
-public class MinecraftServer : BelegtesBrot.MinecraftServer.Server
+public class MinecraftServer : Server
 {
-    private readonly Timer _checkForOnlinePlayerTimer = new();
+    private readonly Timer _checkForOnlinePlayerTimer = new()
+    {
+        Enabled = true,
+        AutoReset = false,
+        Interval = 1000*60*10
+    };
 
     private readonly FileInfo _configFile;
     public readonly MCReceivedMessage McReceived;

@@ -10,10 +10,10 @@ public class PlayerEventArgs(string playername)
 
 public class MCReceivedMessage
 {
-    private readonly BelegtesBrot.MinecraftServer.Server _server;
+    private readonly Server _server;
     private MinecraftLogger _logger;
 
-    public MCReceivedMessage(BelegtesBrot.MinecraftServer.Server server, MinecraftLogger logger)
+    public MCReceivedMessage(Server server, MinecraftLogger logger)
     {
         _server = server;
         _server.ReceivedData += HandleReceivedServerData;
@@ -26,7 +26,6 @@ public class MCReceivedMessage
     public event EventHandler<PlayerEventArgs>? PlayerConnected;
 
     public event EventHandler? ServerEmpty;
-
 
     private void HandleReceivedServerData(object? sender, DataReceivedEventArgs e)
     {
@@ -50,6 +49,7 @@ public class MCReceivedMessage
         // Done (0.838s)! For help, type \"help\"
         var serverShutdown = @$"{serverPrefix} Stopped IO worker!";
         //serverShutdown = @$"{serverPrefix} ThreadedAnvilChunkStorage: All dimensions are saved";
+        var serverFailedToStart = @"\[(\d{2}:\d{2}:\d{2})\] [ServerMain/ERROR]: Failed to start the minecraft server";
 
         _logger.LogMessage(data);
         Match match;
@@ -75,6 +75,10 @@ public class MCReceivedMessage
         else if (Regex.IsMatch(data, serverIsEmpty)) //check if server is empty
         {
             ServerEmpty?.Invoke(_server, EventArgs.Empty);
+        }
+        else if (Regex.IsMatch(data, serverFailedToStart))
+        {
+            _logger.LogMessage("Failed to start the minecraft server, further details in the minecraft server logs.");
         }
     }
 }

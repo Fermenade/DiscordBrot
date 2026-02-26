@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Mime;
 using System.Text;
 
 namespace BelegtesBrot.MinecraftServer;
@@ -7,7 +8,7 @@ public abstract class Server
 {
     private readonly Process _process;
 
-    private readonly ProcessStartInfo processInfo = new()
+    private readonly ProcessStartInfo _processStartInfo = new()
     {
         RedirectStandardOutput = true,
         RedirectStandardInput = true,
@@ -26,12 +27,13 @@ public abstract class Server
         if (!File.Exists(executablePath))
             throw new FileNotFoundException("Server startup file not found", executablePath);
         
-        processInfo.FileName = environmentExecutablePath;
-        processInfo.Arguments = (ServerRootFolder = serverRoot).FullName;
-
+        _processStartInfo.FileName = environmentExecutablePath;
+        ServerRootFolder = serverRoot;
+        _processStartInfo.Arguments = executablePath;
+        AppDomain.CurrentDomain.ProcessExit += (sender, args) => _process?.Kill();
         _process = new Process
         {
-            StartInfo = processInfo
+            StartInfo = _processStartInfo
         };
         _process.OutputDataReceived += OnProcessDataReceived;
     }
@@ -43,6 +45,7 @@ public abstract class Server
     protected void StartProcess()
     {
         _process.Start();
+        _process.BeginOutputReadLine();
     }
 
     public async void WriteToProcess(StringBuilder stringBuilder)
@@ -51,7 +54,6 @@ public abstract class Server
     }
     private void OnProcessDataReceived(object sender, DataReceivedEventArgs e)
     {
-        Logger.LogMessage(e.Data);
         ReceivedData.Invoke(this, e);
     }
 }
