@@ -8,10 +8,10 @@ public class MinecraftServer : Server
     private readonly Timer _checkForOnlinePlayerTimer = new();
 
     private readonly FileInfo _configFile;
-    public readonly PlayerManager PlayerManager;
     public readonly MCReceivedMessage McReceived;
-    public ServerTimeMeasure? ServerTimeMeasure;
+    public readonly PlayerManager PlayerManager;
     public HallOfFame HallOfFame;
+    public ServerTimeMeasure? ServerTimeMeasure;
 
     public MinecraftServer(DirectoryInfo startupFolder) :
         base(
@@ -24,11 +24,11 @@ public class MinecraftServer : Server
         McReceived.PlayerDisconnected += OnPlayerDisconnected;
         McReceived.Ready += OnServerReady;
         McReceived.ShutdownComplete += OnServerStopped;
-        
+
         _configFile = new FileInfo($"{startupFolder.FullName}/server.properties");
-        
+
         PlayerManager = new PlayerManager(Convert.ToInt16(GetServerInformation("max-players")));
-        
+
         //Cuz I don't want to place it inside the mc folder for 'reasons'
         HallOfFame = new HallOfFame(Environment.Parent!);
         _checkForOnlinePlayerTimer.Elapsed += StopServer;

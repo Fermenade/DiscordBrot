@@ -27,9 +27,9 @@ public class MinecraftServerCommand
             await command.RespondAsync("MinecraftServer Feature disabled for this server.");
             return;
         }
-        
+
         var subCommand = command.Data.Options.First().Name;
-        
+
         _minecraftServer ??= new MinecraftServer(_minecraftServerDirectory);
         switch (subCommand)
         {

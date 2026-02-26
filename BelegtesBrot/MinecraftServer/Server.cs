@@ -28,7 +28,7 @@ public abstract class Server
         Environment = new DirectoryInfo(executablePath);
 
         processInfo.FileName = environmentExecutablePath;
-        processInfo.Arguments = (Environment = new (executablePath)).FullName;
+        processInfo.Arguments = (Environment = new DirectoryInfo(executablePath)).FullName;
 
         _process = new Process
         {

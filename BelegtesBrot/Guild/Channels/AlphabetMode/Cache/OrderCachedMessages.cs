@@ -56,7 +56,6 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
                 {
                     currentStreak.CombinationStreak = 0;
                     currentStreak.CurrentCombination = msg.Combination!;
-
                 }
                 else if (x == y)
                 {
@@ -72,8 +71,10 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
                 Logger.LogMessage($"New top streak {topStreak.CurrentCombination}:  {topStreak.CombinationStreak}");
             }
         }
-        var getIndexLastTopStreak = messages.FindIndex(x => x.Combination?.ToString() == topStreak.CurrentCombination.ToString());
-        
+
+        var getIndexLastTopStreak =
+            messages.FindIndex(x => x.Combination?.ToString() == topStreak.CurrentCombination.ToString());
+
         Logger.LogMessage($"Last index of top Streak {getIndexLastTopStreak}");
         var s = topStreak.CurrentCombination;
         var list = new List<AlphabetEntry<T, TDataype>>(messages.Count);

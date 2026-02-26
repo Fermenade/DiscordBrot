@@ -91,6 +91,11 @@ public class Combination(char[] combination) : ReadOnlyCollection<char>(combinat
         return combination.Count == 3 && combination.All(x => 65 <= x && x <= 90);
     }
 
+    public bool CheckFormat()
+    {
+        return CheckFormat(Items);
+    }
+
     public override int GetHashCode()
     {
         throw new NotImplementedException();
@@ -100,10 +105,5 @@ public class Combination(char[] combination) : ReadOnlyCollection<char>(combinat
     public override string ToString()
     {
         return new string(Items.ToArray());
-    }
-
-    public bool CheckFormat()
-    {
-        return CheckFormat(Items);
     }
 }
