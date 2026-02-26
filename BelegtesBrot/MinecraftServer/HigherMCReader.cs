@@ -11,11 +11,13 @@ public class PlayerEventArgs(string playername)
 public class MCReceivedMessage
 {
     private readonly Server _server;
+    private MinecraftLogger _logger;
 
-    public MCReceivedMessage(Server server)
+    public MCReceivedMessage(Server server, MinecraftLogger logger)
     {
         _server = server;
         _server.ReceivedData += HandleReceivedServerData;
+        _logger = logger;
     }
 
     public event EventHandler? Ready;
@@ -49,7 +51,7 @@ public class MCReceivedMessage
         var serverShutdown = @$"{serverPrefix} Stopped IO worker!";
         //serverShutdown = @$"{serverPrefix} ThreadedAnvilChunkStorage: All dimensions are saved";
 
-        Console.WriteLine(data);
+        _logger.LogMessage(data);
         Match match;
         if (Regex.IsMatch(data, serverIsReady)) //Letzte nachricht, wenn der server hochgefahren wurde
         {
@@ -62,7 +64,6 @@ public class MCReceivedMessage
         else if (Regex.IsMatch(data, playerDiconnectPattern)) //check if player disconnected
         {
             match = Regex.Match(data, playerDiconnectPattern);
-
             PlayerDisconnected?.Invoke(_server, new PlayerEventArgs(match.Groups["playername"].Value));
         }
         else if (Regex.IsMatch(data, playerConnectPattern)) //check if player connected

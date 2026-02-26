@@ -12,29 +12,34 @@ public class MinecraftServer : Server
     public readonly PlayerManager PlayerManager;
     public HallOfFame HallOfFame;
     public ServerTimeMeasure? ServerTimeMeasure;
+    public DirectoryInfo ServerRootFolder => base.ServerRootFolder;
+    private DirectoryInfo _nonMcMcDataFolder;
+    public Session ServerSession;
+    private MinecraftLogger _logger;
 
-    public MinecraftServer(DirectoryInfo startupFolder) :
+    public MinecraftServer(DirectoryInfo startupFolder, Session session) :
         base(
-            OperatingSystem.IsWindows() ? "powershell.exe" : @"/bin/bash",
+            OperatingSystem.IsWindows() ? "powershell.exe" : "/bin/bash",
             Path.Combine(startupFolder.FullName, OperatingSystem.IsWindows() ? "start.ps1" : "start.sh")
         )
     {
-        McReceived = new MCReceivedMessage(this);
+        ServerSession = session;
+        _logger = new MinecraftLogger(ServerSession.Logger);
+        _nonMcMcDataFolder = new DirectoryInfo(ServerRootFolder.FullName + "/DiscordData");
+        
+        McReceived = new MCReceivedMessage(this, _logger);
         McReceived.PlayerConnected += OnPlayerConnected;
         McReceived.PlayerDisconnected += OnPlayerDisconnected;
         McReceived.Ready += OnServerReady;
         McReceived.ShutdownComplete += OnServerStopped;
 
-        _configFile = new FileInfo($"{startupFolder.FullName}/server.properties");
+        _configFile = new FileInfo($"{ServerRootFolder.FullName}/server.properties");
 
         PlayerManager = new PlayerManager(Convert.ToInt16(GetServerInformation("max-players")));
-
-        //Cuz I don't want to place it inside the mc folder for 'reasons'
-        HallOfFame = new HallOfFame(Environment.Parent!);
+        HallOfFame = new HallOfFame(_nonMcMcDataFolder);
+        
         _checkForOnlinePlayerTimer.Elapsed += StopServer;
     }
-
-    private DirectoryInfo ServerRootFolder => Environment;
 
     public ServerState ServerState { get; private set; }
 
@@ -45,11 +50,13 @@ public class MinecraftServer : Server
 
     private void WriteSomethingToServer(string str)
     {
+        _logger.LogMessage("To server: " + str);
         WriteToProcess(new StringBuilder(str));
     }
 
     public void StartServer()
     {
+        _logger.LogMessage("Server Started");
         ServerState = ServerState.Booting;
         StartProcess();
     }
@@ -57,28 +64,34 @@ public class MinecraftServer : Server
     private void OnPlayerConnected(object? sender, PlayerEventArgs playerEventArgs)
     {
         PlayerManager.PlayerLogin(playerEventArgs.Playername);
-
+        _logger.LogMessage($"Player {playerEventArgs.Playername} connected, stopping shutdown timer.");
         _checkForOnlinePlayerTimer.Stop();
     }
 
     private void OnPlayerDisconnected(object? sender, PlayerEventArgs playerEventArgs)
     {
         PlayerManager.PlayerLogout(playerEventArgs.Playername);
-        if (!PlayerManager.CurrentOnlinePlayers.Any()) _checkForOnlinePlayerTimer.Start();
+        _logger.LogMessage($"Player {playerEventArgs.Playername} disconnected");
+        if (!PlayerManager.CurrentOnlinePlayers.Any())
+        {
+            _logger.LogMessage($"Empty. Starting shutdown timer.");
+            _checkForOnlinePlayerTimer.Start();
+        }
     }
 
     private void OnServerReady(object? sender, EventArgs args)
     {
         ServerState = ServerState.Online;
         ServerTimeMeasure = new ServerTimeMeasure();
-
+        
+        _logger.LogMessage("Server Ready, falling into wait for shutdown.");
         _checkForOnlinePlayerTimer.Start();
     }
 
     private void OnServerStopped(object? sender, EventArgs args)
     {
         ServerState = ServerState.Offline;
-
+        _logger.LogMessage("Server Stopped");
         HallOfFame.AddEntry(ServerTimeMeasure.GetTimeTillnow(),
             PlayerManager.AllPlayers.OrderBy(x => x).ToArray());
     }

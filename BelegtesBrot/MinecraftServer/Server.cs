@@ -25,10 +25,9 @@ public abstract class Server
     {
         if (!File.Exists(executablePath))
             throw new FileNotFoundException("Server startup file not found", executablePath);
-        Environment = new DirectoryInfo(executablePath);
-
+        
         processInfo.FileName = environmentExecutablePath;
-        processInfo.Arguments = (Environment = new DirectoryInfo(executablePath)).FullName;
+        processInfo.Arguments = (ServerRootFolder = new DirectoryInfo(executablePath)).FullName;
 
         _process = new Process
         {
@@ -37,7 +36,7 @@ public abstract class Server
         _process.OutputDataReceived += OnProcessDataReceived;
     }
 
-    public DirectoryInfo Environment { get; }
+    protected DirectoryInfo ServerRootFolder { get; }
     public bool Running => !_process.HasExited;
     public event EventHandler<DataReceivedEventArgs> ReceivedData; // Custom event
 
@@ -50,9 +49,5 @@ public abstract class Server
     {
         if (Running) await _process.StandardInput.WriteLineAsync(stringBuilder);
     }
-
-    private void OnProcessDataReceived(object sender, DataReceivedEventArgs e)
-    {
-        ReceivedData?.Invoke(this, e);
-    }
+    private void OnProcessDataReceived(object sender, DataReceivedEventArgs e)=> ReceivedData.Invoke(this, e);
 }

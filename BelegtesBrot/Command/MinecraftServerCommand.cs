@@ -7,14 +7,16 @@ namespace BelegtesBrot.commands;
 
 public class MinecraftServerCommand
 {
+    private CommandSession _commandSession;
     private readonly DirectoryInfo _minecraftServerDirectory;
 
     private MinecraftServer? _minecraftServer;
 
     internal MinecraftServerCommand(CommandSession commandSession)
     {
+        _commandSession = commandSession;
         _minecraftServerDirectory =
-            new DirectoryInfo(Path.Combine(commandSession._session.BaseFolder.DirectoryInfo.FullName,
+            new DirectoryInfo(Path.Combine(_commandSession._session.BaseFolder.DirectoryInfo.FullName,
                 "MinecraftServer"));
     }
 
@@ -28,7 +30,7 @@ public class MinecraftServerCommand
 
         var subCommand = command.Data.Options.First().Name;
 
-        _minecraftServer ??= new MinecraftServer(_minecraftServerDirectory);
+        _minecraftServer ??= new MinecraftServer(_minecraftServerDirectory,_commandSession._session);
         switch (subCommand)
         {
             case "start":
