@@ -36,14 +36,9 @@ public class MinecraftServerCommand
             case "start":
                 StartCommand(command);
                 break;
-            case "stop":
-                if (!command.Permissions.Administrator)
-                    await command.FollowupAsync("Permission denied.");
-                _minecraftServer.WriteToProcess(new StringBuilder("stop"));
-                await command.RespondAsync("Stopping...");
-                break;
             case "status":
-                await command.RespondAsync(embed: BuildServerstats().Build());
+                var e = BuildServerstats().Build();
+                await command.RespondAsync(embed: e);
                 break;
             case "stats":
                 await command.RespondAsync("Hiiiii UwU :3c");
@@ -58,8 +53,8 @@ public class MinecraftServerCommand
             Title = "Server Status",
             Color = Color.DarkGreen
         };
-        embed.AddField("Status:", _minecraftServer?.ServerState.ToString() ?? nameof(ServerState.Offline));
-        if (_minecraftServer?.ServerState == ServerState.Online)
+        embed.AddField("Status:", _minecraftServer!.MinecraftServerState?.ToString() ?? nameof(ServerState.Offline));
+        if (_minecraftServer?.MinecraftServerState == ServerState.Online)
         {
             embed.AddField("Hobbylose:", $"{_minecraftServer.PlayerManager.CurrentOnlinePlayers.Count}");
             embed.AddField("MC wird seit",
@@ -115,9 +110,8 @@ public class MinecraftServerCommand
         async void McReceivedOnReady(object? sender, EventArgs e)
         {
             _minecraftServer.McReceived.Ready -= McReceivedOnReady;
-
-            var messageReference = new MessageReference(command.Id);
-            await command.Channel.SendMessageAsync("Online!", messageReference: messageReference);
+            
+            await command.Channel.SendMessageAsync($"{command.User.Mention} Online!");
         }
     }
 }

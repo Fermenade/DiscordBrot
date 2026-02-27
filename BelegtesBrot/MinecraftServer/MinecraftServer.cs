@@ -16,11 +16,13 @@ public class MinecraftServer : Server
     public readonly MCReceivedMessage McReceived;
     public readonly PlayerManager PlayerManager;
     public HallOfFame HallOfFame;
-    public ServerTimeMeasure? ServerTimeMeasure;
+    public ServerTimeMeasure? ServerTimeMeasure = new ServerTimeMeasure();
     public new DirectoryInfo ServerRootFolder => base.ServerRootFolder;
     private DirectoryInfo _nonMcMcDataFolder;
     public Session ServerSession;
     private MinecraftLogger _logger;
+
+    public ServerState? MinecraftServerState { get; private set; }
 
     public MinecraftServer(DirectoryInfo startupFolder, Session session) :
         base(startupFolder,
@@ -44,11 +46,8 @@ public class MinecraftServer : Server
         HallOfFame = new HallOfFame(_nonMcMcDataFolder);
         
         _checkForOnlinePlayerTimer.Elapsed += StopServer;
-        
         AppDomain.CurrentDomain.ProcessExit += StopServer;
     }
-
-    public ServerState ServerState { get; private set; }
 
     private void StopServer(object? obj, EventArgs e)
     {
@@ -64,7 +63,7 @@ public class MinecraftServer : Server
     public void StartServer()
     {
         _logger.LogMessage("Server Started");
-        ServerState = ServerState.Booting;
+        MinecraftServerState = ServerState.Booting;
         StartProcess();
     }
 
@@ -88,7 +87,7 @@ public class MinecraftServer : Server
 
     private void OnServerReady(object? sender, EventArgs args)
     {
-        ServerState = ServerState.Online;
+        MinecraftServerState = ServerState.Online;
         ServerTimeMeasure = new ServerTimeMeasure();
         
         _logger.LogMessage("Server Ready, falling into wait for shutdown.");
@@ -97,7 +96,7 @@ public class MinecraftServer : Server
 
     private void OnServerStopped(object? sender, EventArgs args)
     {
-        ServerState = ServerState.Offline;
+        MinecraftServerState = ServerState.Offline;
         _logger.LogMessage("Server Stopped");
         HallOfFame.AddEntry(ServerTimeMeasure.GetTimeTillnow(),
             PlayerManager.AllPlayers.OrderBy(x => x).ToArray());
@@ -130,11 +129,11 @@ public enum ServerState
 
 public class ServerTimeMeasure
 {
-    public DateTime StartTime
+    public ServerTimeMeasure()
     {
-        get;
-        init => field = DateTime.Now;
+        StartTime = DateTime.Now;
     }
+    public DateTime StartTime { get; }
 
     public TimeSpan GetTimeTillnow()
     {
