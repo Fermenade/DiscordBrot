@@ -6,11 +6,11 @@ public static class AlphabetLogMessage
 {
     public static void LogMessage(IMessage msg, string content)
     {
-        LogMessage(msg.Id, content);
+        LogMessage(((IGuildChannel)msg.Channel).GuildId,msg.Channel.Id, msg.Id, content);
     }
 
-    public static async void LogMessage(ulong id, string content)
+    public static async void LogMessage(ulong guildId, ulong channelId, ulong messageId,string content)
     {
-        await Logger.LogMessage($"[{id}] {content}");
+        await Logger.LogMessage($"[{guildId}][{channelId}][{messageId}][Alphabet] {content}");
     }
 }

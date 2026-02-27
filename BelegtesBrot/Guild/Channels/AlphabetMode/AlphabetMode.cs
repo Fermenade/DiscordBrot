@@ -18,13 +18,13 @@ internal class AlphabetMode : IBaseCom
 
     public Task MessageReceived(IMessage msg)
     {
-        AlphabetLogMessage.LogMessage(msg,"New");
+        AlphabetLogMessage.LogMessage(msg,"New message");
         AlphabetMessage<Combination, char> message = new(msg);
         
         switch (_orderCachedMessages.Add(message))
         {
             case FailureCase.DuplicateAuthor:
-                AlphabetLogMessage.LogMessage(msg,$"{message.Author} was same as prev {_orderCachedMessages.Collection[^2]}");
+                AlphabetLogMessage.LogMessage(msg,$"{message.Author} was same as prev {_orderCachedMessages.Collection[^2].message.Author}");
                 message.DeleteAsync();
                 break;
             case FailureCase.NotCombination:
@@ -46,7 +46,7 @@ internal class AlphabetMode : IBaseCom
 
     public Task MessageUpdated(Cacheable<IMessage, ulong> preMsg, IMessage curMsg, IMessageChannel channel)
     {
-        AlphabetLogMessage.LogMessage(curMsg,"Updated");
+        AlphabetLogMessage.LogMessage(curMsg,"Updated message");
         AlphabetMessage<Combination, char> currentMessage = new(curMsg);
 
         var failure = _orderCachedMessages.Update(preMsg.Id, currentMessage);
@@ -71,7 +71,7 @@ internal class AlphabetMode : IBaseCom
 
     public Task MessageDeleted(Cacheable<IMessage, ulong> msg, Cacheable<IMessageChannel, ulong> channel)
     {
-        AlphabetLogMessage.LogMessage(msg.Id,"deleted");
+        AlphabetLogMessage.LogMessage(((IGuildChannel)_channel).GuildId,channel.Id,msg.Id,"Deleted");
         _orderCachedMessages.Delete(msg.Id);
         return Task.CompletedTask;
     }
