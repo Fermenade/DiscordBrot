@@ -24,8 +24,8 @@ public class MCReceivedMessage
     public event EventHandler? ShutdownComplete;
     public event EventHandler<PlayerEventArgs>? PlayerDisconnected;
     public event EventHandler<PlayerEventArgs>? PlayerConnected;
-
     public event EventHandler? ServerEmpty;
+    public event EventHandler? EulaUnaccepted;
 
     private void HandleReceivedServerData(object? sender, DataReceivedEventArgs e)
     {
@@ -50,6 +50,7 @@ public class MCReceivedMessage
         var serverShutdown = @$"{serverPrefix} Stopped IO worker!";
         //serverShutdown = @$"{serverPrefix} ThreadedAnvilChunkStorage: All dimensions are saved";
         var serverFailedToStart = @"\[(\d{2}:\d{2}:\d{2})\] [ServerMain/ERROR]: Failed to start the minecraft server";
+        var serverEula = "If you agree to Mojang's EULA then type 'I agree'";
 
         _logger.LogMessage(data);
         Match match;
@@ -79,6 +80,11 @@ public class MCReceivedMessage
         else if (Regex.IsMatch(data, serverFailedToStart))
         {
             _logger.LogMessage("Failed to start the minecraft server, further details in the minecraft server logs.");
+        }
+        else if (Regex.IsMatch(data, serverEula))
+        {
+            EulaUnaccepted?.Invoke(_server, EventArgs.Empty);
+            _logger.LogMessage("Mojang's EULA has not yet been accepted. In order to run a Minecraft server, you must accept Mojang's EULA.");
         }
     }
 }

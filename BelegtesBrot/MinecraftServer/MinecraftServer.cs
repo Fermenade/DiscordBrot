@@ -44,6 +44,8 @@ public class MinecraftServer : Server
         HallOfFame = new HallOfFame(_nonMcMcDataFolder);
         
         _checkForOnlinePlayerTimer.Elapsed += StopServer;
+        
+        AppDomain.CurrentDomain.ProcessExit += StopServer;
     }
 
     public ServerState ServerState { get; private set; }

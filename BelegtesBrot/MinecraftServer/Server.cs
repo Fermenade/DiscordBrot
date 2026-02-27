@@ -30,7 +30,7 @@ public abstract class Server
         _processStartInfo.FileName = environmentExecutablePath;
         ServerRootFolder = serverRoot;
         _processStartInfo.Arguments = executablePath;
-        AppDomain.CurrentDomain.ProcessExit += (sender, args) => _process?.Kill();
+        
         _process = new Process
         {
             StartInfo = _processStartInfo
