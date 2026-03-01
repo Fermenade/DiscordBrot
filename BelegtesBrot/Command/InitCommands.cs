@@ -21,8 +21,8 @@ public class InitCommands
             .WithDescription("Minecraft server related commands")
             .AddOption(new SlashCommandOptionBuilder().WithName("start").WithDescription("Start the server")
                 .WithType(ApplicationCommandOptionType.SubCommand))
-            .AddOption(new SlashCommandOptionBuilder().WithName("stop").WithDescription("Stop the server")
-                .WithType(ApplicationCommandOptionType.SubCommand))
+            /*.AddOption(new SlashCommandOptionBuilder().WithName("stop").WithDescription("Stop the server")
+                .WithType(ApplicationCommandOptionType.SubCommand))*/
             .AddOption(new SlashCommandOptionBuilder().WithName("status").WithDescription("Show status of server")
                 .WithType(ApplicationCommandOptionType.SubCommand))
             .AddOption(new SlashCommandOptionBuilder().WithName("stats").WithDescription("Show stats of server")
