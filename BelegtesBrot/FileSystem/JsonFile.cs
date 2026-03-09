@@ -8,7 +8,7 @@ public abstract class JsonFile : IFile
 
     protected JsonFile(DirectoryInfo baseFolder)
     {
-        var absolutePath = Path.Combine(baseFolder.FullName, Name);
+        var absolutePath = Path.Combine(baseFolder.FullName, Path.GetFileNameWithoutExtension(Name), Extension);
         FileInfo = new FileInfo(absolutePath);
     }
 

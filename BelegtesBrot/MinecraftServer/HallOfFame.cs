@@ -16,9 +16,7 @@ public class HallOfFame : JsonFile
 
     public void AddEntry(TimeSpan time, string[] players)
     {
-        List<ScoreEntry> entries;
-
-        entries = LoadEntries();
+        List<ScoreEntry> entries = LoadEntries() ?? [];
         if (entries.Count < _count || time > entries.Min(e => e.Time))
         {
             if (entries.Count >= _count)
@@ -26,28 +24,14 @@ public class HallOfFame : JsonFile
                 entries.Remove(entries.OrderBy(e => e.Time).First());
 
             entries.Add(new ScoreEntry(DateTime.Now, time, players));
-            entries = entries.OrderByDescending(e => e.Time).ToList();
-            SaveEntries(entries);
+            SaveEntries(entries.OrderBy(e => e.Time));
         }
     }
+    public IReadOnlyCollection<ScoreEntry>? GetEntries() => LoadEntries();
 
-    public IReadOnlyCollection<ScoreEntry>? GetEntries()
-    {
-        return LoadEntries();
-    }
+    private async void SaveEntries(IEnumerable<ScoreEntry> entries)=> await SaveAsync(entries);
 
-    private async void SaveEntries<T>(T entries)
-    {
-        await using var fs = new FileStream(FileInfo.FullName, FileMode.OpenOrCreate, FileAccess.Write);
-        await JsonSerializer.SerializeAsync(fs, entries); //Sync oder Async
-    }
-
-    private List<ScoreEntry>? LoadEntries()
-    {
-        if (!File.Exists(FileInfo.FullName)) return null;
-        var json = File.ReadAllText(FileInfo.FullName);
-        return JsonConvert.DeserializeObject<List<ScoreEntry>>(json);
-    }
+    private List<ScoreEntry>? LoadEntries() => LoadAsync<List<ScoreEntry>>().Result;
 }
 
 [Serializable]

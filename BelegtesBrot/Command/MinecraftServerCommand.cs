@@ -41,11 +41,27 @@ public class MinecraftServerCommand
                 await command.RespondAsync(embed: e);
                 break;
             case "stats":
-                await command.RespondAsync("Hiiiii UwU :3c");
+                var x = BuildHallOfFameStats().Build();
+                await command.RespondAsync(embed: x);
                 break;
         }
     }
 
+    private EmbedBuilder BuildHallOfFameStats()
+    {
+        if (_minecraftServer == null)
+        { 
+             _commandSession._session.Logger.LogMessage("Tried to start server but Minecraft Server was not initalized");
+            return null!;
+        }
+        var e = _minecraftServer.HallOfFame.GetEntries()!.SkipLast(5);
+        var embed = new EmbedBuilder().WithTitle("Hall of Fame").WithColor(Color.Gold);
+        foreach (var entry in e)
+        {
+            embed.AddField(FormatDifference(entry.Time),$"{string.Join(", ",entry.Players)}");
+        }
+        return embed;
+    }
     private EmbedBuilder BuildServerstats()
     {
         var embed = new EmbedBuilder
