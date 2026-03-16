@@ -7,8 +7,6 @@ public record AlphabetMessage<TCombination, TDatatype> where TCombination : ICom
     public AlphabetMessage(IMessage Message)
     {
         this.Message = Message;
-        AlphabetLogMessage.LogMessage(this.Message,
-            $"{(this.Message.Content.Length >= 10 ? this.Message.Content.Substring(0, 10) : this.Message.Content)} - {(Combination == null ? "???" : Combination)}");
     }
 
     public ulong Id => Message.Id;

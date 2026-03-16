@@ -2,15 +2,31 @@ using Discord;
 
 namespace BelegtesBrot.Guild.Channels.AlphabetMode;
 
-public static class AlphabetLogMessage
+public class AlphabetLogMessage
 {
-    public static void LogMessage(IMessage msg, string content)
+    private SessionLogger _sessionLogger;
+    private IChannel _channel;
+    public AlphabetLogMessage(SessionLogger sessionLogger,IChannel channel)
     {
-        LogMessage(((IGuildChannel)msg.Channel).GuildId,msg.Channel.Id, msg.Id, content);
+        _sessionLogger = sessionLogger;
+        _channel = channel;
+    }
+    public void LogMessage(IMessage msg, string content)
+    {
+        LogMessage(content, msg.Id);
     }
 
-    public static async void LogMessage(ulong guildId, ulong channelId, ulong messageId,string content)
+    public Task LogMessage(string message)
     {
-        await Logger.LogMessage($"[{guildId}][{channelId}][{messageId}][Alphabet] {content}");
+        return LogMessage(message);
+    }
+    
+    public Task LogMessage(string content, ulong? messageId = null)
+    {
+        return _sessionLogger.LogMessage($"[{_channel}]{(messageId == null ? "":$"[{messageId}]")}[Alphabet] {content}");
+    }
+    public Task LogMessage( ulong messageId, string content)
+    {
+        return LogMessage(content, messageId);
     }
 }

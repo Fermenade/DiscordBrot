@@ -1,4 +1,5 @@
-﻿using BelegtesBrot.Guild;
+﻿using System.Runtime.InteropServices.JavaScript;
+using BelegtesBrot.Guild;
 using BelegtesBrot.Guild.Channels;
 using Discord;
 using Discord.WebSocket;
@@ -26,6 +27,7 @@ internal class DiscordClient : IBaseCom
     /// <returns>A task representing the asynchronous operation.</returns>
     public Task MessageReceived(IMessage message)
     {
+        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Message received: {message.Id}");
         while (true)
         {
             switch (message.Channel)
@@ -63,6 +65,7 @@ internal class DiscordClient : IBaseCom
     public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage,
         IMessageChannel channel)
     {
+        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Message updated: {currentMessage.Id}");
         while (true)
         {
             switch (channel)
@@ -95,17 +98,16 @@ internal class DiscordClient : IBaseCom
     /// <returns>A task representing the asynchronous operation.</returns>
     public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
     {
+        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Message deleted: {message.Id}");
         while (true)
         {
             switch (channel.Value)
             {
                 case IGuildChannel chan:
                 {
-                    Logger.LogMessage($"Deleted guild message {message.Id} of guild {chan.Guild.Id}");
                     foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
                         return socketGuild.MessageDeleted(message, channel);
 
-                    Logger.LogMessage($"Guild {chan.Guild.Id} unhandled, adding handler.");
                     _servers.Add(new Server(chan.Guild));
                     continue;
                 }
@@ -120,17 +122,16 @@ internal class DiscordClient : IBaseCom
 
     public Task SlashCommandExecuted(SocketSlashCommand command)
     {
+        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Command executed: {command.Id} - {command.CommandName}");
         while (true)
         {
             switch (command.Channel)
             {
                 case IGuildChannel chan:
                 {
-                    Logger.LogMessage($"Executed guild command {command.Id} of guild {chan.Guild.Id}");
                     foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
                         return socketGuild.SlashCommandExecuted(command);
 
-                    Logger.LogMessage($"Guild {chan.Guild.Id} unhandled, adding handler.");
                     _servers.Add(new Server(chan.Guild));
                     continue;
                 }

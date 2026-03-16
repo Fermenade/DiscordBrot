@@ -4,10 +4,10 @@ namespace BelegtesBrot.Guild;
 
 public class GuildFileManager
 {
-    public GuildFileManager(IFolder baseFolder)
+    public GuildFileManager(Session session)
     {
-        BaseFolder = baseFolder;
-        LinkedChannelsFile = new LinkedChannelsFile(baseFolder);
+        BaseFolder = session.BaseFolder;
+        LinkedChannelsFile = new LinkedChannelsFile(session);
     }
 
     public IFolder BaseFolder { get; }

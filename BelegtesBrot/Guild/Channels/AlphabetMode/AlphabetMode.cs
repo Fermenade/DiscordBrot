@@ -10,33 +10,38 @@ internal class AlphabetMode : IBaseCom
 {
     private IMessageChannel _channel;
     private OrderCachedMessages<Combination, char> _orderCachedMessages;
+    private AlphabetLogMessage _alphabetLogMessage;
 
-    public AlphabetMode(ulong channelId)
+    public AlphabetMode(ulong channelId, Session session)
     {
         InitFromChannel(channelId);
+        _alphabetLogMessage = new AlphabetLogMessage(session.Logger,_channel!);
+        _alphabetLogMessage.LogMessage("Initialized alphabet mode");
     }
 
     public Task MessageReceived(IMessage msg)
     {
-        AlphabetLogMessage.LogMessage(msg,"New message");
+        _alphabetLogMessage.LogMessage(msg,"New message");
         AlphabetMessage<Combination, char> message = new(msg);
+        _alphabetLogMessage.LogMessage(msg, $"{(message.Content.Length >= 10 ? message.Content.Substring(0, 10) : message.Content)} - {(message.Combination == null ? "???" : message.Combination.ToString())}");
+        
         
         switch (_orderCachedMessages.Add(message))
         {
             case FailureCase.DuplicateAuthor:
-                AlphabetLogMessage.LogMessage(msg,$"{message.Author} was same as prev {_orderCachedMessages.Collection[^2].message.Author}");
+                _alphabetLogMessage.LogMessage(msg,$"{message.Author} was same as prev {_orderCachedMessages.Collection[^2].message.Author}");
                 message.DeleteAsync();
                 break;
             case FailureCase.NotCombination:
-                AlphabetLogMessage.LogMessage(msg,"NaC");
+                _alphabetLogMessage.LogMessage(msg,"NaC");
                 message.DeleteAsync();
                 break;
             case FailureCase.WrongCombination:
-                AlphabetLogMessage.LogMessage(msg, $"Wrong com -> {_orderCachedMessages.Collection.Last().actuallCombination.GetCombo(-1)}");
+                _alphabetLogMessage.LogMessage(msg, $"Wrong com -> {_orderCachedMessages.Collection.Last().actuallCombination.GetCombo(-1)}");
                 AddFishReactionToMessage(message);
                 break;
             case FailureCase.None:
-                AlphabetLogMessage.LogMessage(msg, "No Failure");
+                _alphabetLogMessage.LogMessage(msg, "No Failure");
                 break;
         }
 
@@ -46,22 +51,23 @@ internal class AlphabetMode : IBaseCom
 
     public Task MessageUpdated(Cacheable<IMessage, ulong> preMsg, IMessage curMsg, IMessageChannel channel)
     {
-        AlphabetLogMessage.LogMessage(curMsg,"Updated message");
+        _alphabetLogMessage.LogMessage(curMsg,"Updated message");
         AlphabetMessage<Combination, char> currentMessage = new(curMsg);
-
+        _alphabetLogMessage.LogMessage(curMsg, $"{(currentMessage.Content.Length >= 10 ? currentMessage.Content.Substring(0, 10) : curMsg.Content)} - {(currentMessage.Combination == null ? "???" : currentMessage.Combination.ToString())}");
+        
         var failure = _orderCachedMessages.Update(preMsg.Id, currentMessage);
         switch (failure)
         {
             case FailureCase.WrongCombination:
-                AlphabetLogMessage.LogMessage(curMsg, $"Wrong com -> {_orderCachedMessages.Collection.First(x=>x.message.Id == curMsg.Id).actuallCombination}");
+                _alphabetLogMessage.LogMessage(curMsg, $"Wrong com -> {_orderCachedMessages.Collection.First(x=>x.message.Id == curMsg.Id).actuallCombination}");
                 AddFishReactionToMessage(currentMessage);
                 break;
             case  FailureCase.NotCombination:
-                AlphabetLogMessage.LogMessage(curMsg,"NaC");
+                _alphabetLogMessage.LogMessage(curMsg,"NaC");
                 AddFishReactionToMessage(currentMessage);
                 break;
             case FailureCase.None:
-                AlphabetLogMessage.LogMessage(curMsg, "No Failure");
+                _alphabetLogMessage.LogMessage(curMsg, "No Failure");
                 RemoveFishReactionAsync(currentMessage);
                 break;
             case FailureCase.NonExistent:
@@ -73,7 +79,7 @@ internal class AlphabetMode : IBaseCom
 
     public Task MessageDeleted(Cacheable<IMessage, ulong> msg, Cacheable<IMessageChannel, ulong> channel)
     {
-        AlphabetLogMessage.LogMessage(((IGuildChannel)_channel).GuildId,channel.Id,msg.Id,"Deleted");
+        _alphabetLogMessage.LogMessage(msg.Id,"Deleted");
         _orderCachedMessages.Delete(msg.Id);
         return Task.CompletedTask;
     }
@@ -86,7 +92,7 @@ internal class AlphabetMode : IBaseCom
     private async void InitFromChannel(ulong channelId)
     {
         _channel = (IMessageChannel)Program._client.GetChannel(channelId);
-        Logger.LogMessage($"Alphabet mode of channel '{_channel.Name}' initializing");
+        _alphabetLogMessage.LogMessage($"Alphabet mode of channel '{_channel.Name}' initializing");
 
         var messages = (await _channel.GetMessagesAsync(30).FlattenAsync()).ToArray();
         List<AlphabetMessage<Combination, char>> alphabetMessages = new();

@@ -8,11 +8,11 @@ namespace BelegtesBrot.Command;
 
 public class ModeCommand
 {
-    private readonly CommandSession _commandSession;
+    private readonly CommandSession _commandCommandSession;
 
-    internal ModeCommand(CommandSession session)
+    internal ModeCommand(CommandSession commandSession)
     {
-        _commandSession = session;
+        _commandCommandSession = commandSession;
     }
 
     public async Task ModeCommandExecute(SocketSlashCommand command)
@@ -21,7 +21,7 @@ public class ModeCommand
         Server server;
         try
         {
-            server = (Server)_commandSession.Session;
+            server = (Server)_commandCommandSession.Session;
         }
         catch (InvalidCastException e)
         {

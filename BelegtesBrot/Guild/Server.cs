@@ -8,8 +8,9 @@ internal class Server : Session, IServer
 {
     public Server(IGuild guild) : base(guild.Id)
     {
+        Logger.LogMessage($"Handling started");
         Guild = guild;
-        GuildFileManager = new GuildFileManager(BaseFolder);
+        GuildFileManager = new GuildFileManager(this);
         MessageChannelManager = new LinkedChannelManager(this);
         CommandSession = new CommandSession(this);
     }
@@ -21,13 +22,20 @@ internal class Server : Session, IServer
 
     public Task MessageReceived(IMessage message)
     {
-        Logger.LogMessage($"Received message {message.Id} in {message.Channel.Id}");
-        foreach (var messageChannel in MessageChannelManager.LinkedChannels)
-            if (messageChannel.ChannelId == message.Channel.Id)
-            {
-                Logger.LogMessage($"Message {message.Id} handled with mode {messageChannel.ModeName}");
-                return messageChannel.Channel.MessageReceived(message);
-            }
+        try
+        {
+            Logger.LogMessage(message,"Received message");
+            foreach (var messageChannel in MessageChannelManager.LinkedChannels)
+                if (messageChannel.ChannelId == message.Channel.Id)
+                {
+                    return messageChannel.Channel.MessageReceived(message);
+                }
+        }
+        catch (Exception e)
+        {
+            Logger.LogMessage($"{e.Message}\n" +
+                              $"{e.StackTrace}");
+        }
 
         return Task.CompletedTask;
     }
@@ -35,31 +43,56 @@ internal class Server : Session, IServer
     public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage,
         IMessageChannel channel)
     {
-        Logger.LogMessage($"Updated message {currentMessage.Id} in {channel.Id}");
-        foreach (var messageChannel in MessageChannelManager.LinkedChannels)
-            if (messageChannel.ChannelId == channel.Id)
-            {
-                Logger.LogMessage($"Message {currentMessage.Id} handled with mode {messageChannel.ModeName}");
-                return messageChannel.Channel.MessageUpdated(previousMessage, currentMessage, channel);
-            }
+        try
+        {
+            Logger.LogMessage(currentMessage,"Updated message");
+            foreach (var messageChannel in MessageChannelManager.LinkedChannels)
+                if (messageChannel.ChannelId == channel.Id)
+                {
+                    return messageChannel.Channel.MessageUpdated(previousMessage, currentMessage, channel);
+                }
+        }
+    
+        catch (Exception e)
+        {
+            Logger.LogMessage($"{e.Message}\n" +
+                              $"{e.StackTrace}");
+        }
         return Task.CompletedTask;
     }
 
     public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
     {
-        Logger.LogMessage($"Deleted message {message.Id} in {channel.Id}");
-        foreach (var messageChannel in MessageChannelManager.LinkedChannels)
-            if (messageChannel.ChannelId == channel.Value.Id)
-            {
-                Logger.LogMessage($"Message {message.Id} handled with mode {messageChannel.ModeName}");
-                return messageChannel.Channel.MessageDeleted(message, channel);
-            }
+        try
+        {
+            Logger.LogMessage(channel.Id,message.Id,"Deleted message");
+            foreach (var messageChannel in MessageChannelManager.LinkedChannels)
+                if (messageChannel.ChannelId == channel.Value.Id)
+                {
+                    return messageChannel.Channel.MessageDeleted(message, channel);
+                }
+        }
+        catch (Exception e)
+        {
+            Logger.LogMessage($"{e.Message}\n" +
+                              $"{e.StackTrace}");
+        }
+        
         return Task.CompletedTask;
     }
 
     public Task SlashCommandExecuted(SocketSlashCommand command)
     {
-        Logger.LogMessage($"Command [{command.Id}] by [{command.User.Id}] executed: {command.CommandName}");
-        return CommandSession.Command(command);
+        try
+        {
+            Logger.LogCommand(command, "Received command");
+            return CommandSession.Command(command);
+        }
+        catch (Exception e)
+        {
+            Logger.LogMessage($"{e.Message}\n" +
+                              $"{e.StackTrace}");
+        }
+        return Task.CompletedTask;
     }
 }

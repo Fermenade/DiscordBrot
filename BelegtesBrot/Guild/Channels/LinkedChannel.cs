@@ -14,6 +14,7 @@ public sealed class LinkedChannel
     // Serialized properties
     public ulong ChannelId { get; init; }
     public string ModeName { get; init; }
+    public Session Session { get; set; }
 
     // Runtime-only property (not serialized)
     [JsonIgnore] public IBaseCom Channel => field ??= CreateChannel();
@@ -32,7 +33,7 @@ public sealed class LinkedChannel
         if (!typeof(IBaseCom).IsAssignableFrom(modeType))
             throw new InvalidOperationException($"{modeType.FullName} does not implement IBaseCom");
 
-        return (IBaseCom)(Activator.CreateInstance(modeType, ChannelId)
+        return (IBaseCom)(Activator.CreateInstance(modeType, ChannelId, Session)
                           ?? throw new InvalidOperationException($"Could not create instance of {modeType.FullName}"));
     }
 

@@ -4,8 +4,10 @@ namespace BelegtesBrot.FileSystem;
 
 public sealed class LinkedChannelsFile : JsonFile
 {
-    public LinkedChannelsFile(IFolder baseFolder) : base(baseFolder.DirectoryInfo)
+    public Session Session { get; }
+    public LinkedChannelsFile(Session session) : base(session.BaseFolder.DirectoryInfo)
     {
+        Session = session;
     }
 
     public override string Name => "LinkedChannels.json";
@@ -17,6 +19,13 @@ public sealed class LinkedChannelsFile : JsonFile
 
     public IEnumerable<LinkedChannel>? Load()
     {
-        return LoadAsync<IEnumerable<LinkedChannel>>().Result;
+        var linkedChannels = LoadAsync<LinkedChannel[]>().Result;
+        if (linkedChannels == null) return null;
+        foreach (var linkedChannel in linkedChannels)
+        {
+            linkedChannel.Session = Session;
+        }
+
+        return linkedChannels;
     }
 }
