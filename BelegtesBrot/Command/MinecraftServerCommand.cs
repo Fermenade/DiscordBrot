@@ -16,42 +16,41 @@ public class MinecraftServerCommand
     {
         _commandSession = commandSession;
         _minecraftServerDirectory =
-            new DirectoryInfo(Path.Combine(_commandSession._session.BaseFolder.DirectoryInfo.FullName,
+            new DirectoryInfo(Path.Combine(_commandSession.Session.BaseFolder.DirectoryInfo.FullName,
                 "MinecraftServer"));
     }
 
     public async Task ServerCommand(SocketSlashCommand command)
     {
+        _commandSession.Session.Logger.LogMessage($"Handling server command [{command.Id}]");
         if (!_minecraftServerDirectory.Exists)
         {
             await command.RespondAsync("MinecraftServer Feature disabled for this server.");
             return;
         }
 
-        var subCommand = command.Data.Options.First().Name;
-
-        _minecraftServer ??= new MinecraftServer.MinecraftServer(_minecraftServerDirectory,_commandSession._session);
-        switch (subCommand)
+        _minecraftServer ??= new MinecraftServer.MinecraftServer(_minecraftServerDirectory,_commandSession.Session);
+        
+        switch (command.Data.Options.First().Name)
         {
             case "start":
                 StartCommand(command);
                 break;
             case "status":
-                var e = BuildServerstats().Build();
-                await command.RespondAsync(embed: e);
+                await command.RespondAsync(embed: BuildServerstats().Build());
                 break;
             case "stats":
-                var x = BuildHallOfFameStats().Build();
-                await command.RespondAsync(embed: x);
+                await command.RespondAsync(embed: BuildHallOfFameStats().Build());
                 break;
         }
     }
 
     private EmbedBuilder BuildHallOfFameStats()
     {
+        _commandSession.Session.Logger.LogMessage($"Building hall of fame stats...");
         if (_minecraftServer == null)
         { 
-             _commandSession._session.Logger.LogMessage("Tried to start server but Minecraft Server was not initalized");
+             _commandSession.Session.Logger.LogMessage("Minecraft Server was not initialized");
             return null!;
         }
         var e = _minecraftServer.HallOfFame.GetEntries()!.SkipLast(5);
@@ -87,11 +86,10 @@ public class MinecraftServerCommand
         var days = timeSpan.Days;
         var hours = timeSpan.Hours;
         var minutes = timeSpan.Minutes; // Calculate minutes
-        var seconds = timeSpan.Seconds;
 
         // Build the output string
         var result = $"{FormatPlural(years, "Jahr")} {FormatPlural(months, "Monat")} {FormatPlural(days, "Tag")} " +
-                     $"{FormatPlural(hours, "Stunde")} {FormatPlural(minutes, "Minute")} {FormatPlural(seconds, "Sekunde")}";
+                     $"{FormatPlural(hours, "Stunde")} {FormatPlural(minutes, "Minute")}";
         return result;
     }
 
@@ -112,9 +110,10 @@ public class MinecraftServerCommand
 
     private async void StartCommand(SocketSlashCommand command)
     {
+        _commandSession.Session.Logger.LogMessage($"Starting Minecraft Server...");
         if (_minecraftServer == null)
         { 
-           await _commandSession._session.Logger.LogMessage("Tried to start server but Minecraft Server was not initalized");
+           await _commandSession.Session.Logger.LogMessage("Minecraft Server was not initalized");
            return;
         }
         

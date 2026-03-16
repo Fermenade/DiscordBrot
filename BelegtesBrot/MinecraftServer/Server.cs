@@ -36,7 +36,6 @@ public abstract class Server
             StartInfo = _processStartInfo
         };
         _process.OutputDataReceived += OnProcessDataReceived;
-        _process.BeginOutputReadLine();
     }
 
     protected DirectoryInfo ServerRootFolder { get; }
@@ -46,6 +45,13 @@ public abstract class Server
     protected void StartProcess()
     {
         _process.Start();
+        _process.BeginOutputReadLine();
+    }
+
+    protected void StopProcess()
+    {
+        _process.CancelOutputRead();
+        _process.CloseMainWindow();
     }
 
     public async void WriteToProcess(StringBuilder stringBuilder)
