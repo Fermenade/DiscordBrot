@@ -22,16 +22,12 @@ internal class OrderMessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntr
     public FailureCase Update(ulong id, AlphabetMessage<T, TDataype> current)
     {
         (int Index, AlphabetEntry<T, TDataype> Item)? found = GetItem(id);
+        if (!found.HasValue) return FailureCase.NonExistent;
+        
         var foundPrevious = new AlphabetEntry<T, TDataype>(found.Value.Item);
-        if (found.HasValue)
-        {
-            found.Value.Item.Update(current);
-
-            UpdateAtIndex(found.Value.Index, found.Value.Item);
-        }
-
-        var e = T.UpdateRule(foundPrevious, found.Value.Item);
-        return e;
+        found.Value.Item.Update(current);
+        UpdateAtIndex(found.Value.Index, found.Value.Item);
+        return T.UpdateRule(foundPrevious, found.Value.Item);;
     }
 
     public FailureCase Delete(ulong deletedId)

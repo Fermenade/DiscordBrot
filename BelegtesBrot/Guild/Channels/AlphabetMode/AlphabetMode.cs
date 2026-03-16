@@ -64,6 +64,8 @@ internal class AlphabetMode : IBaseCom
                 AlphabetLogMessage.LogMessage(curMsg, "No Failure");
                 RemoveFishReactionAsync(currentMessage);
                 break;
+            case FailureCase.NonExistent:
+                break;
         }
 
         return Task.CompletedTask;
