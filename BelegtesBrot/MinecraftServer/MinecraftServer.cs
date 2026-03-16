@@ -100,6 +100,8 @@ public class MinecraftServer : Server
         _logger.LogMessage("Server Stopped");
         HallOfFame.AddEntry(ServerTimeMeasure.GetTimeTillnow(),
             PlayerManager.AllPlayers.OrderBy(x => x).ToArray());
+        
+        StopProcess();
     }
 
     private string GetServerInformation(string optionName)

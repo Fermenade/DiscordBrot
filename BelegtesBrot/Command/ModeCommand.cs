@@ -21,7 +21,7 @@ public class ModeCommand
         Server server;
         try
         {
-            server = (Server)_commandSession._session;
+            server = (Server)_commandSession.Session;
         }
         catch (InvalidCastException e)
         {

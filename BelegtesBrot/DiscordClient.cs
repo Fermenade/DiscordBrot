@@ -32,16 +32,19 @@ internal class DiscordClient : IBaseCom
             {
                 case IGuildChannel channel:
                 {
+                    Logger.LogMessage($"Received guild message {message.Id} of guild {channel.Guild.Id}");
                     foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == channel.Guild.Id))
                         return socketGuild.MessageReceived(message);
-
+                    
+                    Logger.LogMessage($"Guild {channel.Guild.Id} unhandled, adding handler.");
                     _servers.Add(new Server(channel.Guild));
                     continue;
                 }
                 case IDMChannel dmChannel:
+                    Logger.LogMessage($"Received DM message: {message.Id}");
                     break;
                 default:
-                    Console.WriteLine("Received message was neither from Guild or DM: " +
+                    Logger.LogMessage("Received message was neither from Guild or DM: " +
                                       message.Type); // To test if there is any other case.
                     break;
             }
@@ -66,9 +69,11 @@ internal class DiscordClient : IBaseCom
             {
                 case IGuildChannel chan:
                 {
+                    Logger.LogMessage($"Update guild message {currentMessage.Id} of guild {chan.Guild.Id}");
                     foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
                         return socketGuild.MessageUpdated(previousMessage, currentMessage, channel);
-
+                    
+                    Logger.LogMessage($"Guild {chan.Guild.Id} unhandled, adding handler.");
                     _servers.Add(new Server(chan.Guild));
                     continue;
                 }
@@ -96,9 +101,11 @@ internal class DiscordClient : IBaseCom
             {
                 case IGuildChannel chan:
                 {
+                    Logger.LogMessage($"Deleted guild message {message.Id} of guild {chan.Guild.Id}");
                     foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
                         return socketGuild.MessageDeleted(message, channel);
 
+                    Logger.LogMessage($"Guild {chan.Guild.Id} unhandled, adding handler.");
                     _servers.Add(new Server(chan.Guild));
                     continue;
                 }
@@ -119,9 +126,11 @@ internal class DiscordClient : IBaseCom
             {
                 case IGuildChannel chan:
                 {
+                    Logger.LogMessage($"Executed guild command {command.Id} of guild {chan.Guild.Id}");
                     foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
                         return socketGuild.SlashCommandExecuted(command);
 
+                    Logger.LogMessage($"Guild {chan.Guild.Id} unhandled, adding handler.");
                     _servers.Add(new Server(chan.Guild));
                     continue;
                 }

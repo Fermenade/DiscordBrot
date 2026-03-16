@@ -9,14 +9,14 @@ internal class CommandSession
 
     private readonly MinecraftServerCommand _minecraftServerCommand;
     private readonly ModeCommand _modeCommand;
-    internal readonly Session _session;
+    internal readonly Session Session;
 
     public CommandSession(Session session)
     {
         if (_handledSessions.Any(x => x == session))
             throw new InvalidOperationException("A Session can only have one CommandSession");
         _handledSessions.Add(session);
-        _session = session;
+        Session = session;
 
         _minecraftServerCommand = new MinecraftServerCommand(this);
         _modeCommand = new ModeCommand(this);
