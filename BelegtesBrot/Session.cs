@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using BelegtesBrot.FileSystem;
 
 namespace BelegtesBrot;
@@ -11,7 +12,8 @@ public class Session
     public BaseFolder BaseFolder;
 
     public SessionLogger Logger;
-
+    
+    [JsonConstructor]
     public Session(ulong id)
     {
         Id = id;

@@ -6,11 +6,11 @@ namespace BelegtesBrot.Guild;
 internal class LinkedChannelManager
 {
     private readonly List<LinkedChannel> _linkedChannels;
-    private readonly IServer _server;
+    private readonly Server _server;
 
     private List<LinkedChannel>? _linkedChannelsCopy;
 
-    public LinkedChannelManager(IServer server)
+    public LinkedChannelManager(Server server)
     {
         _linkedChannels = server.GuildFileManager.LinkedChannelsFile.Load()?.ToList() ?? [];
         _server = server;
@@ -30,7 +30,7 @@ internal class LinkedChannelManager
 
     public void Add(ulong channelId, string channelType)
     {
-        Add(LinkedChannel.Create(channelId, channelType));
+        Add(LinkedChannel.Create(_server,channelId, channelType));
     }
 
     private void Add(LinkedChannel channel)

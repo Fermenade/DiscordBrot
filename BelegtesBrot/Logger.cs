@@ -15,9 +15,10 @@ public class Logger
         var filePath = Path.Combine(LogDirectory, fileName);
 
         // Append the message with timestamp
-        Console.WriteLine(message);
+        string logMessage = $"{DateTime.Now:HH:mm:ss} - {message}{Environment.NewLine}";
+        Console.Write(logMessage);
 
-        await File.AppendAllTextAsync(filePath, $"{DateTime.Now:HH:mm:ss} - {message}{Environment.NewLine}");
+        await File.AppendAllTextAsync(filePath, logMessage);
 
         // Clean up old files
         DeleteOldFiles();

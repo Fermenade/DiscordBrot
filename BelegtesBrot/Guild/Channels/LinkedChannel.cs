@@ -5,24 +5,25 @@ namespace BelegtesBrot.Guild.Channels;
 public sealed class LinkedChannel
 {
     [JsonConstructor]
-    private LinkedChannel(ulong channelId, string modeName)
+    private LinkedChannel(ulong channelId, string modeName, Session session)
     {
         ChannelId = channelId;
         ModeName = modeName;
+        Session = session;
     }
 
     // Serialized properties
     public ulong ChannelId { get; init; }
     public string ModeName { get; init; }
-    public Session Session { get; set; }
+    public Session Session { get; init; }
 
     // Runtime-only property (not serialized)
     [JsonIgnore] public IBaseCom Channel => field ??= CreateChannel();
 
-    public static LinkedChannel Create(ulong channelId, string modeName)
+    public static LinkedChannel Create(Session session, ulong channelId, string modeName)
     {
         ValidateMode(modeName);
-        return new LinkedChannel(channelId, modeName);
+        return new LinkedChannel(channelId, modeName, session);
     }
 
     private IBaseCom CreateChannel()

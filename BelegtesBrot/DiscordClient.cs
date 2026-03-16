@@ -27,7 +27,7 @@ internal class DiscordClient : IBaseCom
     /// <returns>A task representing the asynchronous operation.</returns>
     public Task MessageReceived(IMessage message)
     {
-        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Message received: {message.Id}");
+        Logger.LogMessage($"Message received: {message.Id}");
         while (true)
         {
             switch (message.Channel)
@@ -65,7 +65,7 @@ internal class DiscordClient : IBaseCom
     public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage,
         IMessageChannel channel)
     {
-        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Message updated: {currentMessage.Id}");
+        Logger.LogMessage($"Message updated: {currentMessage.Id}");
         while (true)
         {
             switch (channel)
@@ -98,7 +98,7 @@ internal class DiscordClient : IBaseCom
     /// <returns>A task representing the asynchronous operation.</returns>
     public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
     {
-        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Message deleted: {message.Id}");
+        Logger.LogMessage($"Message deleted: {message.Id}");
         while (true)
         {
             switch (channel.Value)
@@ -122,7 +122,7 @@ internal class DiscordClient : IBaseCom
 
     public Task SlashCommandExecuted(SocketSlashCommand command)
     {
-        Logger.LogMessage($"[{TimeOnly.FromDateTime(DateTime.Now).ToString()}] Command executed: {command.Id} - {command.CommandName}");
+        Logger.LogMessage($"Command executed: {command.Id} - {command.CommandName}");
         while (true)
         {
             switch (command.Channel)
@@ -140,7 +140,6 @@ internal class DiscordClient : IBaseCom
             }
 
             return Task.CompletedTask;
-            break;
         }
     }
 

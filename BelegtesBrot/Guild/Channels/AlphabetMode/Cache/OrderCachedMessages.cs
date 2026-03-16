@@ -30,6 +30,7 @@ public class OrderCachedMessages<T, TDataype> where T : ICombination<T, TDataype
         return collection.Delete(deletedId);
     }
 
+    public AlphabetEntry<T, TDataype> GetLastestEntry() => collection.GetLastestEntry();
     private List<AlphabetEntry<T, TDataype>> GetBotUpToDate(List<AlphabetMessage<T, TDataype>> messages)
     {
         Streak<T, TDataype> currentStreak = new();

@@ -19,13 +19,6 @@ public sealed class LinkedChannelsFile : JsonFile
 
     public IEnumerable<LinkedChannel>? Load()
     {
-        var linkedChannels = LoadAsync<LinkedChannel[]>().Result;
-        if (linkedChannels == null) return null;
-        foreach (var linkedChannel in linkedChannels)
-        {
-            linkedChannel.Session = Session;
-        }
-
-        return linkedChannels;
+        return LoadAsync<LinkedChannel[]>().Result;
     }
 }
