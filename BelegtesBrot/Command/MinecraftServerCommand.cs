@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using BelegtesBrot.MinecraftServer;
 using Discord;
@@ -53,8 +54,14 @@ public class MinecraftServerCommand
              _commandSession.Session.Logger.LogMessage("Minecraft Server was not initialized");
             return null!;
         }
-        var e = _minecraftServer.HallOfFame.GetEntries()!.SkipLast(5);
+        
         var embed = new EmbedBuilder().WithTitle("Hall of Fame").WithColor(Color.Gold);
+        var e = _minecraftServer.HallOfFame.GetEntries();
+        if (e == null || e.Count == 0)
+        {
+            embed.AddField(inline: true, name: "Uh...", value: "Nothing there jet :(");
+            return embed;
+        }
         foreach (var entry in e)
         {
             embed.AddField(FormatDifference(entry.Time),$"{string.Join(", ",entry.Players)}");

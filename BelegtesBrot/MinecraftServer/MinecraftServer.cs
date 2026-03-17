@@ -7,7 +7,7 @@ public class MinecraftServer : Server
 {
     private readonly Timer _checkForOnlinePlayerTimer = new()
     {
-        Enabled = true,
+        Enabled = false,
         AutoReset = false,
         Interval = 1000*60*10
     };
