@@ -17,6 +17,7 @@ public class HallOfFame : JsonFile
     public void AddEntry(TimeSpan time, string[] players)
     {
         List<ScoreEntry> entries = LoadEntries() ?? [];
+        if(players.Length == 0)return;
         if (entries.Count < _count || time > entries.Min(e => e.Time))
         {
             if (entries.Count >= _count)
