@@ -1,0 +1,153 @@
+﻿using System.Runtime.InteropServices.JavaScript;
+using BelegtesBrot.Guild;
+using BelegtesBrot.Guild.Channels;
+using Discord;
+using Discord.WebSocket;
+
+namespace BelegtesBrot;
+
+internal class DiscordClient : IBaseCom
+{
+    public static DirectoryInfo _directoryInfo = new(Path.Combine(Environment.CurrentDirectory, "data"));
+
+    private readonly DiscordSocketClient _client;
+
+    private readonly List<IServer> _servers = new();
+
+
+    public DiscordClient(DiscordSocketClient client)
+    {
+        _client = client;
+    }
+
+    /// <summary>
+    ///     Handles a received message event.
+    /// </summary>
+    /// <param name="message">The received message.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task MessageReceived(IMessage message)
+    {
+        Logger.LogMessage($"Message received: {message.Id}");
+        while (true)
+        {
+            switch (message.Channel)
+            {
+                case IGuildChannel channel:
+                {
+                    Logger.LogMessage($"Received guild message {message.Id} of guild {channel.Guild.Id}");
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == channel.Guild.Id))
+                        return socketGuild.MessageReceived(message);
+                    
+                    Logger.LogMessage($"Guild {channel.Guild.Id} unhandled, adding handler.");
+                    _servers.Add(new Server(channel.Guild));
+                    continue;
+                }
+                case IDMChannel dmChannel:
+                    Logger.LogMessage($"Received DM message: {message.Id}");
+                    break;
+                default:
+                    Logger.LogMessage("Received message was neither from Guild or DM: " +
+                                      message.Type); // To test if there is any other case.
+                    break;
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    ///     Handles an updated message event.
+    /// </summary>
+    /// <param name="previousMessage">The previous cacheable message.</param>
+    /// <param name="currentMessage">The current cacheable message.</param>
+    /// <param name="channel">The message channel.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task MessageUpdated(Cacheable<IMessage, ulong> previousMessage, IMessage currentMessage,
+        IMessageChannel channel)
+    {
+        Logger.LogMessage($"Message updated: {currentMessage.Id}");
+        while (true)
+        {
+            switch (channel)
+            {
+                case IGuildChannel chan:
+                {
+                    Logger.LogMessage($"Update guild message {currentMessage.Id} of guild {chan.Guild.Id}");
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
+                        return socketGuild.MessageUpdated(previousMessage, currentMessage, channel);
+                    
+                    Logger.LogMessage($"Guild {chan.Guild.Id} unhandled, adding handler.");
+                    _servers.Add(new Server(chan.Guild));
+                    continue;
+                }
+                case IDMChannel dmChannel:
+                    //Direct message.
+                    break;
+            }
+
+            return Task.CompletedTask;
+            break;
+        }
+    }
+
+    /// <summary>
+    ///     Handles a deleted message event.
+    /// </summary>
+    /// <param name="message">The cacheable deleted message.</param>
+    /// <param name="channel">The cacheable deleted message channel.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
+    {
+        Logger.LogMessage($"Message deleted: {message.Id}");
+        while (true)
+        {
+            switch (channel.Value)
+            {
+                case IGuildChannel chan:
+                {
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
+                        return socketGuild.MessageDeleted(message, channel);
+
+                    _servers.Add(new Server(chan.Guild));
+                    continue;
+                }
+                case IDMChannel dmChannel:
+                    break;
+            }
+
+            return Task.CompletedTask;
+            break;
+        }
+    }
+
+    public Task SlashCommandExecuted(SocketSlashCommand command)
+    {
+        Logger.LogMessage($"Command executed: {command.Id} - {command.CommandName}");
+        while (true)
+        {
+            switch (command.Channel)
+            {
+                case IGuildChannel chan:
+                {
+                    foreach (var socketGuild in _servers.Where(socketGuild => socketGuild.Guild.Id == chan.Guild.Id))
+                        return socketGuild.SlashCommandExecuted(command);
+
+                    _servers.Add(new Server(chan.Guild));
+                    continue;
+                }
+                case IDMChannel dmChannel:
+                    break;
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    public void Ready()
+    {
+        _client.MessageReceived += MessageReceived;
+        _client.MessageUpdated += MessageUpdated;
+        _client.MessageDeleted += MessageDeleted;
+        _client.SlashCommandExecuted += SlashCommandExecuted;
+    }
+}
