@@ -21,10 +21,10 @@ internal class Program
         };
         _client = new DiscordSocketClient(config);
 
-        _client.Log += message => Logger.LogMessage(message.Message);
+        _client.Log += message => Logger.LogMessage($"{message.Severity}: {message} - {message.Exception} {message.Source}");
 
         _discordClient = new DiscordClient(_client);
-
+        
         Start();
         _discordClient.Ready();
         Task.Delay(-1).GetAwaiter().GetResult();
