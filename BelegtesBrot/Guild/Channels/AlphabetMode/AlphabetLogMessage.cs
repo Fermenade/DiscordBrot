@@ -15,12 +15,6 @@ public class AlphabetLogMessage
     {
         LogMessage(content, msg.Id);
     }
-
-    public Task LogMessage(string message)
-    {
-        return LogMessage(message,null);
-    }
-    
     public Task LogMessage(string content, ulong? messageId = null)
     {
         return _sessionLogger.LogMessage($"[{_channel.Id}]{(messageId == null ? "":$"[{messageId}]")}[Alphabet] {content}");
