@@ -6,7 +6,7 @@ namespace BelegtesBrot;
 
 internal class Program
 {
-    private const string tokenPath = "./token.txt";
+    private const string tokenPath = "/run/secrets/token";
     private const string devTokenPath = "./devtoken.txt";
     private const bool isDev = false;
     public static DiscordSocketClient _client;
