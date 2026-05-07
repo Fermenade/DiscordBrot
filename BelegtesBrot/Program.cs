@@ -14,10 +14,6 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        Console.WriteLine("---------");
-        Console.WriteLine(File.ReadAllLines(tokenPath));
-        Console.WriteLine("---------");
-        return;
         var config = new DiscordSocketConfig
         {
             GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.Guilds |
@@ -36,7 +32,12 @@ internal class Program
 
     private static async void Start()
     {
-        await _client.LoginAsync(TokenType.Bot, await File.ReadAllTextAsync(isDev ? devTokenPath : tokenPath));
+        var token = await File.ReadAllTextAsync(isDev ? devTokenPath : tokenPath);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Console.WriteLine("Token is empty");
+        }
+        await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
 
         TaskCompletionSource<bool> _readyCompletionSource = new();
