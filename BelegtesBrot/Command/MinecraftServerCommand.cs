@@ -23,7 +23,7 @@ public class MinecraftServerCommand
 
     public async Task ServerCommand(SocketSlashCommand command)
     {
-        _commandSession.Session.Logger.LogMessage($"Handling server command [{command.Id}]");
+        await _commandSession.Session.Logger.LogMessage($"Handling server command [{command.Id}]");
         if (!_minecraftServerDirectory.Exists)
         {
             await command.RespondAsync("MinecraftServer Feature disabled for this server.");
@@ -48,7 +48,7 @@ public class MinecraftServerCommand
 
     private EmbedBuilder BuildHallOfFameStats()
     {
-        _commandSession.Session.Logger.LogMessage($"Building hall of fame stats...");
+        _commandSession.Session.Logger.LogMessage("Building hall of fame stats...");
         if (_minecraftServer == null)
         { 
              _commandSession.Session.Logger.LogMessage("Minecraft Server was not initialized");
@@ -56,15 +56,17 @@ public class MinecraftServerCommand
         }
         
         var embed = new EmbedBuilder().WithTitle("Hall of Fame").WithColor(Color.Gold);
-        var e = _minecraftServer.HallOfFame.GetEntries();
-        if (e == null || e.Count == 0)
+        var e = _minecraftServer.HallOfFame.GetEntries()?.Reverse();
+        var scoreEntries = e as ScoreEntry[] ?? e?.ToArray();
+        if (scoreEntries == null || scoreEntries.Length == 0)
         {
             embed.AddField(inline: true, name: "Uh...", value: "Nothing there jet :(");
             return embed;
         }
-        foreach (var entry in e)
+        foreach (var entry in scoreEntries)
         {
             embed.AddField(FormatDifference(entry.Time),$"{string.Join(", ",entry.Players)}");
+            
         }
         return embed;
     }
@@ -117,7 +119,7 @@ public class MinecraftServerCommand
 
     private async void StartCommand(SocketSlashCommand command)
     {
-        _commandSession.Session.Logger.LogMessage($"Starting Minecraft Server...");
+        await _commandSession.Session.Logger.LogMessage($"Starting Minecraft Server...");
         if (_minecraftServer == null)
         { 
            await _commandSession.Session.Logger.LogMessage("Minecraft Server was not initalized");
