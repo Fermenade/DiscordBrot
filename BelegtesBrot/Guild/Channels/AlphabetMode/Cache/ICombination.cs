@@ -12,7 +12,7 @@ public interface ICombination<T, TDatatype> : IReadOnlyCollection<TDatatype> whe
     public static abstract bool CheckFormat(IList<TDatatype> combination);
     public bool CheckFormat();
 
-    public static abstract FailureCase AddRule(AlphabetEntry<T, TDatatype> previousMessage,
+    public static abstract FailureCase AddRule(AlphabetEntry<T, TDatatype>? previousMessage,
         AlphabetEntry<T, TDatatype> currentMessage);
 
     public static abstract FailureCase UpdateRule(AlphabetEntry<T, TDatatype> previousMessage,
