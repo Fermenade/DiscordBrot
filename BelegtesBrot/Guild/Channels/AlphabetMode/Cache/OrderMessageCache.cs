@@ -1,3 +1,5 @@
+using BelegtesBrot.Guild.Channels.AlphabetMode.Alphabet;
+
 namespace BelegtesBrot.Guild.Channels.AlphabetMode.Cache;
 
 internal class OrderMessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntry<T, TDataype>>
@@ -11,8 +13,17 @@ internal class OrderMessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntr
     {
         if (Count == 0) throw new Exception("Cache size was 0, can't calculate the next combination");
         var lastmessage = GetLastestEntry();
-        AlphabetEntry<T, TDataype> entry = new(message, lastmessage.actuallCombination.GetCombo(-1));
 
+        AlphabetEntry<T, TDataype> entry;
+        if (lastmessage == null)
+        {
+            if(message.Combination == null) return FailureCase.NotCombination;
+            entry = new(message, message.Combination);
+        }
+        else
+        {
+            entry = new(message, lastmessage.actuallCombination.GetCombo(-1));
+        }
         base.Add(entry);
         var e = entry.message.Combination;
 
@@ -52,8 +63,8 @@ internal class OrderMessageCache<T, TDataype> : FixedSizeCollection<AlphabetEntr
         return entryIndex?.Length == 0 ? null : entryIndex?[0];
     }
 
-    public AlphabetEntry<T, TDataype> GetLastestEntry()
+    public AlphabetEntry<T, TDataype>? GetLastestEntry()
     {
-        return base[^1];
+        return Count != 0 ? base[^1] : null;
     }
 }

@@ -104,7 +104,6 @@ internal class AlphabetMode : IBaseCom
 
     private async void InitFromChannel(ulong channelId)
     {
-        
         var messages = _channel.GetMessagesAsync(30).FlattenAsync().Result.ToArray();
         List<AlphabetMessage<Combination, char>> alphabetMessages = [];
         for (var i = messages.Length - 1; i >= 0; i--)
@@ -112,7 +111,9 @@ internal class AlphabetMode : IBaseCom
 
         _orderCachedMessages = new OrderCachedMessages<Combination, char>(alphabetMessages);
 
-        if (_orderCachedMessages.Count == 0) await _channel.SendMessageAsync("ZZZ");
+        var e = _orderCachedMessages.GetLastestEntry();
+        if (e == null || e.actuallCombination.ToString() == "ZZZ") await _channel.SendMessageAsync("ZZZ");
+        
     }
 
     private void AddFishReactionToMessage(AlphabetMessage<Combination, char> message)

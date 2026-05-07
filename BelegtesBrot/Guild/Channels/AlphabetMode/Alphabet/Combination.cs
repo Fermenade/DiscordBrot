@@ -5,9 +5,13 @@ namespace BelegtesBrot.Guild.Channels.AlphabetMode.Alphabet;
 
 public class Combination(char[] combination) : ReadOnlyCollection<char>(combination), ICombination<Combination, char>
 {
-    public static FailureCase AddRule(AlphabetEntry<Combination, char> previousMessage,
+    public static FailureCase AddRule(AlphabetEntry<Combination, char>? previousMessage,
         AlphabetEntry<Combination, char> currentMessage)
     {
+        if (previousMessage == null)
+        {
+            return FailureCase.None;
+        }
         if (previousMessage.message.Author.Id == currentMessage.message.Author.Id) return FailureCase.DuplicateAuthor;
         var e = currentMessage.message.Combination;
 
