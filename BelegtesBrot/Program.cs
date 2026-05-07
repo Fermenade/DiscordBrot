@@ -14,6 +14,10 @@ internal class Program
 
     private static void Main(string[] args)
     {
+        Console.WriteLine("---------");
+        Console.WriteLine(File.ReadAllLines(tokenPath));
+        Console.WriteLine("---------");
+        return;
         var config = new DiscordSocketConfig
         {
             GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.Guilds |
