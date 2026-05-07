@@ -24,8 +24,8 @@ public abstract class Server
     /// <param name="executablePath">Path to the server executable</param>
     protected Server(DirectoryInfo serverRoot, string environmentExecutablePath, string executablePath)
     {
-        if (!File.Exists(executablePath))
-            throw new FileNotFoundException("Server startup file not found", executablePath);
+        if (!File.Exists(environmentExecutablePath))
+            throw new FileNotFoundException("Server startup file not found", environmentExecutablePath);
         
         _processStartInfo.FileName = environmentExecutablePath;
         ServerRootFolder = serverRoot;

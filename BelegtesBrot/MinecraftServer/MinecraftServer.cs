@@ -28,7 +28,7 @@ public class MinecraftServer : Server
 
     public MinecraftServer(DirectoryInfo startupFolder, Session session) :
         base(startupFolder,
-            "Babysitter",
+            "ChildMurderer",
             $"{Environment.ProcessId} {(OperatingSystem.IsWindows() ? "powershell.exe" : "/bin/bash")} {Path.Combine(startupFolder.FullName, OperatingSystem.IsWindows() ? "start.ps1" : "start.sh")} stop"
             )
     {
