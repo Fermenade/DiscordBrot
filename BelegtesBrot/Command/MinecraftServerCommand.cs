@@ -56,7 +56,7 @@ public class MinecraftServerCommand
         }
         
         var embed = new EmbedBuilder().WithTitle("Hall of Fame").WithColor(Color.Gold);
-        var e = _minecraftServer.HallOfFame.GetEntries()?.Reverse();
+        var e = _minecraftServer.HallOfFame.GetEntries()?.Reverse().Take(5);
         var scoreEntries = e as ScoreEntry[] ?? e?.ToArray();
         if (scoreEntries == null || scoreEntries.Length == 0)
         {
