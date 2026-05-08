@@ -35,7 +35,8 @@ class Program
         }
         catch
         {
-            // Parent already gone → treat as "parent exited"
+            Console.Error.WriteLine("Could not find parent process with PID {0}.", parentPid);
+            return 1;
         }
 
         using var child = new Process
