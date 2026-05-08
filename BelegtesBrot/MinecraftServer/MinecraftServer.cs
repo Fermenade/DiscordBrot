@@ -48,7 +48,17 @@ public class MinecraftServer : Server
         HallOfFame = new HallOfFame(_nonMcMcDataFolder);
         
         _checkForOnlinePlayerTimer.Elapsed += StopServer;
-        AppDomain.CurrentDomain.ProcessExit += StopServer;
+        Program.ShutdownCts.Token.Register(() =>
+        {
+            if(!Running)return;
+            StopServer(null, EventArgs.Empty);
+            _logger.LogMessage($"Waiting for {session.Id} minecraft server to exit...");
+            while (Running)
+            {
+                Task.Delay(100).Wait(Program.ShutdownComplete.Token);
+            }
+        }
+        );
     }
 
     private void StopServer(object? obj, EventArgs e)
