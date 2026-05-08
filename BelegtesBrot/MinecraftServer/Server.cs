@@ -39,7 +39,21 @@ public abstract class Server
     }
 
     protected DirectoryInfo ServerRootFolder { get; }
-    public bool Running => !_process.HasExited;
+    public bool Running
+    {
+        get
+        {
+            try
+            {
+                return !_process.HasExited;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
+    }
+
     public event EventHandler<DataReceivedEventArgs> ReceivedData; // Custom event
 
     protected void StartProcess()
