@@ -128,6 +128,7 @@ public class MinecraftServerCommand
         if (_minecraftServer.Running)
         {
             await _commandSession.Session.Logger.LogMessage("Minecraft Server is already running");
+            await command.RespondAsync("Minecraft Server is already running");
             return;
         }
         
