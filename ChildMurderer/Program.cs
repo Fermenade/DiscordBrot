@@ -35,7 +35,8 @@ class Program
         }
         catch
         {
-            // Parent already gone → treat as "parent exited"
+            Console.Error.WriteLine("Could not find parent process with PID {0}.", parentPid);
+            return 1;
         }
 
         using var child = new Process
@@ -74,17 +75,15 @@ class Program
         var stderrTask = ForwardStreamAsync(child.StandardError, Console.Error, token);
 
         // Forward our stdin to child stdin
-        var stdinTask = ForwardStreamAsync(Console.In, child.StandardInput, token, closeDestinationOnEnd: true);
-
+        var stdinTask = ForwardStreamAsync(new StreamReader(Console.OpenStandardInput()), child.StandardInput, token, closeDestinationOnEnd: true);
+        
         // Monitor parent exit (if we could attach)
         Task parentExitTask = Task.CompletedTask;
-        if (parentProcess != null)
-        {
-            var tcs = new TaskCompletionSource<object?>();
-            parentProcess.EnableRaisingEvents = true;
-            parentProcess.Exited += (_, __) => tcs.TrySetResult(null);
-            parentExitTask = tcs.Task;
-        }
+        
+        var tcs = new TaskCompletionSource<object?>();
+        parentProcess.EnableRaisingEvents = true;
+        parentProcess.Exited += (_, _) => tcs.TrySetResult(null);
+        parentExitTask = tcs.Task;
 
         // Also monitor child exit
         var childExitTcs = new TaskCompletionSource<object?>();
@@ -92,7 +91,7 @@ class Program
         var childExitTask = childExitTcs.Task;
 
         // If parent already gone, parentExitTask is completed
-        if (parentProcess == null || parentProcess.HasExited)
+        if (parentProcess.HasExited)
         {
             parentExitTask = Task.CompletedTask;
         }
@@ -140,7 +139,8 @@ class Program
         {
             while (!token.IsCancellationRequested)
             {
-                int read = await source.ReadAsync(buffer.AsMemory(0, buffer.Length), token);
+                int read = await source.ReadAsync(buffer.AsMemory(0, buffer.Length), token); // hangs here
+                
                 if (read <= 0)
                     break;
 
