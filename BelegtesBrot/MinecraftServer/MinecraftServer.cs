@@ -28,9 +28,13 @@ public class MinecraftServer : Server
 
     public MinecraftServer(DirectoryInfo startupFolder, Session session) :
         base(startupFolder,
+            $"{(OperatingSystem.IsWindows() ? "powershell.exe" : "/bin/bash")}",
+            $"{Path.Combine(startupFolder.FullName, OperatingSystem.IsWindows() ? "start.ps1" : "start.sh")}"
+        )
+        /*base(startupFolder,
             "ChildMurderer",
             $"{Environment.ProcessId} {(OperatingSystem.IsWindows() ? "powershell.exe" : "/bin/bash")} {Path.Combine(startupFolder.FullName, OperatingSystem.IsWindows() ? "start.ps1" : "start.sh")} stop"
-            )
+            )*/
     {
         ServerSession = session;
         _logger = new MinecraftLogger(ServerSession.Logger);
