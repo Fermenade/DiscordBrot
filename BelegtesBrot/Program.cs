@@ -9,7 +9,7 @@ internal class Program
 {
     private const string tokenPath = "/run/secrets/token";
     private const string devTokenPath = "./devtoken.txt";
-    private const bool isDev = true;
+    private const bool isDev = false;
     public static DiscordSocketClient _client;
     private static DiscordClient _discordClient;
     
