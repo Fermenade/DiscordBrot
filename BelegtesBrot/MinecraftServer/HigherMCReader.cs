@@ -51,6 +51,7 @@ public class MCReceivedMessage
         //serverShutdown = @$"{serverPrefix} ThreadedAnvilChunkStorage: All dimensions are saved";
         var serverFailedToStart = @"\[(\d{2}:\d{2}:\d{2})\] [ServerMain/ERROR]: Failed to start the minecraft server";
         var serverEula = "If you agree to Mojang's EULA then type 'I agree'";
+        var exiting = "Exiting...";
 
         _logger.LogMessage(data);
         Match match;
@@ -85,6 +86,11 @@ public class MCReceivedMessage
         {
             EulaUnaccepted?.Invoke(_server, EventArgs.Empty);
             _logger.LogMessage("Mojang's EULA has not yet been accepted. In order to run a Minecraft server, you must accept Mojang's EULA.");
+        }
+        else if (Regex.IsMatch(data, exiting))
+        {
+            _logger.LogMessage("Exiting Minecraft Server.");
+            ShutdownComplete?.Invoke(_server, EventArgs.Empty);
         }
     }
 }
