@@ -125,6 +125,11 @@ public class MinecraftServerCommand
            await _commandSession.Session.Logger.LogMessage("Minecraft Server was not initalized");
            return;
         }
+        if (_minecraftServer.Running)
+        {
+            await _commandSession.Session.Logger.LogMessage("Minecraft Server is already running");
+            return;
+        }
         
         _minecraftServer.StartServer();
         await command.RespondAsync("Started");

@@ -52,11 +52,12 @@ public class MinecraftServer : Server
         {
             if(!Running)return;
             StopServer(null, EventArgs.Empty);
-            _logger.LogMessage($"Waiting for {session.Id} minecraft server to exit...");
+            _logger.LogMessage($"Waiting for minecraft server to exit...");
             while (Running)
             {
                 Task.Delay(100).Wait(Program.ShutdownComplete.Token);
             }
+            _logger.LogMessage($"Server stopped");
         }
         );
     }
