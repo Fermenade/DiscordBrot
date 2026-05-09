@@ -65,7 +65,7 @@ public abstract class Server
     protected void StopProcess()
     {
         _process.CancelOutputRead();
-        _process.CloseMainWindow();
+        _process.Kill(true);
     }
 
     public async void WriteToProcess(StringBuilder stringBuilder)
