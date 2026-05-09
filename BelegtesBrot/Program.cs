@@ -52,7 +52,7 @@ internal class Program
         _client.Log += message => Logger.LogMessage($"{message.Severity}: {message} - {message.Exception} {message.Source}");
 
         _discordClient = new DiscordClient(_client);
-        Start();
+        await Start();
         _discordClient.Ready();
 
         try
@@ -72,7 +72,7 @@ internal class Program
         ShutdownComplete.Cancel();
     }
 
-    private static async void Start()
+    private static async Task Start()
     {
         var token = await File.ReadAllTextAsync(isDev ? devTokenPath : tokenPath);
         if (string.IsNullOrWhiteSpace(token))

@@ -35,7 +35,7 @@ public class MinecraftServerCommand
         switch (command.Data.Options.First().Name)
         {
             case "start":
-                StartCommand(command);
+                await StartCommand(command);
                 break;
             case "status":
                 await command.RespondAsync(embed: BuildServerstats().Build());
@@ -117,7 +117,7 @@ public class MinecraftServerCommand
         return count == 1 ? $"{count} {singular}" : $"{count} {pluralForms[singular]}";
     }
 
-    private async void StartCommand(SocketSlashCommand command)
+    private async Task StartCommand(SocketSlashCommand command)
     {
         await _commandSession.Session.Logger.LogMessage($"Starting Minecraft Server...");
         if (_minecraftServer == null)
@@ -139,9 +139,16 @@ public class MinecraftServerCommand
 
         async void McReceivedOnReady(object? sender, EventArgs e)
         {
-            _minecraftServer.McReceived.Ready -= McReceivedOnReady;
+            try
+            {
+                _minecraftServer.McReceived.Ready -= McReceivedOnReady;
             
-            await command.Channel.SendMessageAsync($"{command.User.Mention} Online!");
+                await command.Channel.SendMessageAsync($"{command.User.Mention} Online!");
+            }
+            catch (Exception exception)
+            {
+                _commandSession.Session.Logger.LogMessage(exception.ToString());
+            }
         }
     }
 }

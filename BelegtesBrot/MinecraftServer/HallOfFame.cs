@@ -30,7 +30,7 @@ public class HallOfFame : JsonFile
     }
     public IReadOnlyCollection<ScoreEntry>? GetEntries() => LoadEntries();
 
-    private async void SaveEntries(IEnumerable<ScoreEntry> entries)=> await SaveAsync(entries);
+    private async Task SaveEntries(IEnumerable<ScoreEntry> entries)=> await SaveAsync(entries);
 
     private List<ScoreEntry>? LoadEntries() => LoadAsync<List<ScoreEntry>>().Result;
 }

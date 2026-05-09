@@ -68,7 +68,7 @@ public abstract class Server
         _process.Kill(true);
     }
 
-    public async void WriteToProcess(StringBuilder stringBuilder)
+    public async Task WriteToProcess(StringBuilder stringBuilder)
     {
         if (Running) await _process.StandardInput.WriteLineAsync(stringBuilder);
     }

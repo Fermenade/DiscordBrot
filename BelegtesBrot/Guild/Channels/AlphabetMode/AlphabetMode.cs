@@ -102,7 +102,7 @@ internal class AlphabetMode : IBaseCom
         throw new NotImplementedException();
     }
 
-    private async void InitFromChannel(ulong channelId)
+    private void InitFromChannel(ulong channelId)
     {
         var messages = _channel.GetMessagesAsync(30).FlattenAsync().Result.ToArray();
         List<AlphabetMessage<Combination, char>> alphabetMessages = [];
@@ -112,8 +112,7 @@ internal class AlphabetMode : IBaseCom
         _orderCachedMessages = new OrderCachedMessages<Combination, char>(alphabetMessages);
 
         var e = _orderCachedMessages.GetLastestEntry();
-        if (e == null || e.actuallCombination.ToString() == "ZZZ") await _channel.SendMessageAsync("ZZZ");
-        
+        if (e == null || e.actuallCombination.ToString() == "ZZZ") _channel.SendMessageAsync("ZZZ").Wait();
     }
 
     private void AddFishReactionToMessage(AlphabetMessage<Combination, char> message)
@@ -121,7 +120,7 @@ internal class AlphabetMode : IBaseCom
         message.AddReactionAsync(new Emoji("🐟"));
     }
 
-    private async void RemoveFishReactionAsync(AlphabetMessage<Combination, char> message)
+    private async Task RemoveFishReactionAsync(AlphabetMessage<Combination, char> message)
     {
         await message.RemoveReactionAsync(new Emoji("🐟"), Program._client.CurrentUser);
         // soll der fehler wieder abgezogen werden, wenn der fehler ausgebessert wird?
